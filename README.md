@@ -50,7 +50,7 @@ sotto-conti (es. "Sardegna"), sommato ricorsivamente.
 Serve solo **Docker** e **Docker Compose** installati.
 
 ```bash
-# 1. (opzionale) personalizza le password in .env — ne è già presente uno pronto all'uso
+# 1. (opzionale) personalizza le password in .env, controllare il .env.example per avere un esempio di .env
 # 2. avvia i container
 docker compose up -d --build
 
@@ -75,25 +75,3 @@ docker compose down        # ferma i container, MANTIENE i dati del database
 docker compose down -v     # ferma i container e CANCELLA anche il database
 docker compose logs -f web # log del servizio PHP
 ```
-
-## Passaggio a un hosting vero (quando deciderai)
-
-1. **Esporta il database** da phpMyAdmin locale (`http://localhost:8081`) → tasto
-   "Esporta" → formato SQL → scarica il file.
-2. Sul nuovo hosting, crea un database vuoto tramite il loro pannello (es. phpMyAdmin del
-   provider) e **importa** il file appena esportato.
-3. **Carica i file** dentro `src/` via FTP/SFTP nella cartella pubblica del tuo hosting
-   (es. `public_html`).
-4. Aggiorna le credenziali di connessione: l'hosting normalmente non usa variabili
-   d'ambiente Docker, quindi modifica direttamente i valori di fallback in
-   `includes/db.php` (host, nome database, utente, password forniti dall'hosting).
-
-Tutto il resto del codice resta identico: zero riscrittura.
-
-## Nota su Tailwind CSS
-
-Per semplicità (nessun passaggio di build/Node richiesto) il progetto usa il **Tailwind Play
-CDN** (`<script src="https://cdn.tailwindcss.com">`), incluso in `includes/header.php` e nelle
-pagine di login/registrazione. È pensato per sviluppo/uso personale: se in futuro vorrai
-performance migliori in produzione, si può passare a una build compilata di Tailwind — fammi
-sapere quando ti interessa e te la preparo.
