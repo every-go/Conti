@@ -50,6 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errore = 'Seleziona il metodo di pagamento.';
     } elseif ($data === '') {
         $errore = 'Inserisci una data.';
+    } elseif (($annoConto = getContoAnno($pdo, $contoId)) !== null && (int) substr($data, 0, 4) !== $annoConto) {
+        $errore = "La data deve rientrare nell'anno {$annoConto}, l'anno del conto selezionato.";
     } else {
         $stmt = $pdo->prepare(
             'UPDATE record SET conto_id = ?, nome = ?, soldi = ?, tipo = ?, data = ?, note = ? WHERE id = ?'
@@ -71,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ];
 }
 
-require __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/includes/header.php';
 ?>
 <div class="max-w-lg mx-auto px-4 py-8">
     <h1 class="text-2xl font-bold text-slate-800 mb-6">Modifica record</h1>
@@ -87,9 +89,9 @@ require __DIR__ . '/includes/header.php';
 
         <div>
             <label class="block text-sm font-medium text-slate-700 mb-1">Conto</label>
-            <select name="conto_id" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
+            <select name="conto_id" id="conto_id" required onchange="aggiornaLimitiData()" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
                 <?php foreach ($conti as $c): ?>
-                    <option value="<?= $c['id'] ?>" <?= $record['conto_id'] == $c['id'] ? 'selected' : '' ?>>
+                    <option value="<?= $c['id'] ?>" data-anno="<?= $c['anno'] ?? '' ?>" <?= $record['conto_id'] == $c['id'] ? 'selected' : '' ?>>
                         <?= str_repeat('— ', $c['depth']) . htmlspecialchars($c['nome']) . ($c['anno'] ? ' (' . $c['anno'] . ')' : '') ?>
                     </option>
                 <?php endforeach; ?>
@@ -133,8 +135,9 @@ require __DIR__ . '/includes/header.php';
 
         <div>
             <label class="block text-sm font-medium text-slate-700 mb-1">Data</label>
-            <input type="date" name="data" value="<?= htmlspecialchars($record['data']) ?>" required
+            <input type="date" name="data" id="data" value="<?= htmlspecialchars($record['data']) ?>" required
                    class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
+            <p class="text-xs text-slate-400 mt-1" id="nota-anno-data"></p>
         </div>
 
         <div>
@@ -150,12 +153,71 @@ require __DIR__ . '/includes/header.php';
         </button>
     </form>
 
-    <form method="post" onsubmit="return confirm('Eliminare definitivamente questo record?');" class="mt-3">
+    <script>
+    function aggiornaLimitiData() {
+        const select = document.getElementById('conto_id');
+        const campoData = document.getElementById('data');
+        const nota = document.getElementById('nota-anno-data');
+        const anno = select.options[select.selectedIndex]?.dataset.anno;
+
+        if (anno) {
+            campoData.min = anno + '-01-01';
+            campoData.max = anno + '-12-31';
+            nota.textContent = 'Il conto selezionato è del ' + anno + ': la data deve rientrare in quell\'anno.';
+
+            const annoAttuale = campoData.value ? campoData.value.slice(0, 4) : '';
+            if (annoAttuale && annoAttuale !== anno) {
+                campoData.value = anno + '-01-01';
+            }
+        } else {
+            campoData.removeAttribute('min');
+            campoData.removeAttribute('max');
+            nota.textContent = '';
+        }
+    }
+    aggiornaLimitiData();
+    </script>
+
+    <form method="post" id="formElimina" class="mt-3">
         <input type="hidden" name="id" value="<?= $recordId ?>">
-        <button type="submit" name="elimina" value="1"
+        <input type="hidden" name="elimina" value="1">
+        <button type="button" onclick="apriModaleElimina()"
                 class="w-full bg-white border border-red-300 text-red-600 py-2.5 rounded-lg font-medium hover:bg-red-50 transition">
             Elimina record
         </button>
     </form>
+
+    <!-- Modale di conferma eliminazione -->
+    <div id="modaleElimina" class="hidden fixed inset-0 bg-slate-900/50 flex items-center justify-center px-4 z-50">
+        <div class="bg-white rounded-xl shadow-lg max-w-sm w-full p-6">
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Eliminare il record?</h3>
+            <p class="text-sm text-slate-500 mb-6">Questa azione non può essere annullata.</p>
+            <div class="flex gap-3">
+                <button type="button" onclick="chiudiModaleElimina()"
+                        class="flex-1 border border-slate-300 text-slate-700 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition">
+                    Annulla
+                </button>
+                <button type="button" onclick="document.getElementById('formElimina').submit()"
+                        class="flex-1 bg-red-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition">
+                    Elimina
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function apriModaleElimina() {
+        document.getElementById('modaleElimina').classList.remove('hidden');
+    }
+    function chiudiModaleElimina() {
+        document.getElementById('modaleElimina').classList.add('hidden');
+    }
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') chiudiModaleElimina();
+    });
+    document.getElementById('modaleElimina').addEventListener('click', (e) => {
+        if (e.target.id === 'modaleElimina') chiudiModaleElimina();
+    });
+    </script>
 </div>
-<?php require __DIR__ . '/includes/footer.php'; ?>
+<?php require_once __DIR__ . '/includes/footer.php'; ?>

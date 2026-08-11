@@ -163,17 +163,20 @@ function getUserContiTree(PDO $pdo, int $userId): array
     }
 
     $result = [];
-    $walk = function (int $parentKey, int $depth) use (&$walk, &$byParent, &$result) {
+    $walk = function (int $parentKey, int $depth, ?int $annoEreditato) use (&$walk, &$byParent, &$result) {
         if (empty($byParent[$parentKey])) {
             return;
         }
         foreach ($byParent[$parentKey] as $row) {
+            // Un sotto-conto non ha un anno proprio nel database: eredita quello del padre
+            $annoEffettivo = $row['anno'] !== null ? (int) $row['anno'] : $annoEreditato;
+            $row['anno'] = $annoEffettivo;
             $row['depth'] = $depth;
             $result[] = $row;
-            $walk((int) $row['id'], $depth + 1);
+            $walk((int) $row['id'], $depth + 1, $annoEffettivo);
         }
     };
-    $walk(0, 0);
+    $walk(0, 0, null);
 
     return $result;
 }

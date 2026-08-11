@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-require __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/includes/header.php';
 ?>
 <div class="max-w-lg mx-auto px-4 py-8">
     <h1 class="text-2xl font-bold text-slate-800 mb-6">Nuovo conto</h1>
@@ -124,4 +124,4 @@ function toggleContoFields() {
 toggleContoFields();
 </script>
 
-<?php require __DIR__ . '/includes/footer.php'; ?>
+<?php require_once __DIR__ . '/includes/footer.php'; ?>

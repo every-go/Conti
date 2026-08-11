@@ -34,14 +34,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$username, $hash]);
             $userId = (int) $pdo->lastInsertId();
 
-            // Crea automaticamente il conto principale per l'anno corrente,
-            // così l'utente trova subito un conto pronto dove inserire record
-            $annoCorrente = (int) date('Y');
-            $stmt = $pdo->prepare(
-                'INSERT INTO conti (nome, anno, user_id, parent_conto_id) VALUES (?, ?, ?, NULL)'
-            );
-            $stmt->execute([(string) $annoCorrente, $annoCorrente, $userId]);
-
             session_regenerate_id(true);
             $_SESSION['user_id'] = $userId;
             $_SESSION['username'] = $username;

@@ -53,7 +53,7 @@ $stmt = $pdo->prepare(
 $stmt->execute([$userId]);
 $categorieEsistenti = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-require __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/includes/header.php';
 ?>
 <div class="max-w-5xl mx-auto px-4 py-8">
     <h1 class="text-2xl font-bold text-slate-800 mb-6">Storico movimenti</h1>
@@ -157,4 +157,4 @@ require __DIR__ . '/includes/header.php';
         </table>
     </div>
 </div>
-<?php require __DIR__ . '/includes/footer.php'; ?>
+<?php require_once __DIR__ . '/includes/footer.php'; ?>

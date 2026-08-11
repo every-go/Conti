@@ -41,7 +41,7 @@ foreach ($figliRaw as $f) {
     ];
 }
 
-require __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/includes/header.php';
 ?>
 <div class="max-w-5xl mx-auto px-4 py-8">
 
@@ -118,9 +118,9 @@ require __DIR__ . '/includes/header.php';
             </p>
             <a href="storico.php?conto_id=<?= $contoId ?>"
                class="inline-block bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition">
-                Apri storico →
+                Apri storico <span aria-hidden="true">→</span>
             </a>
         </div>
     </div>
 </div>
-<?php require __DIR__ . '/includes/footer.php'; ?>
+<?php require_once __DIR__ . '/includes/footer.php'; ?>

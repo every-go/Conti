@@ -8,7 +8,7 @@ $userId = (int) $_SESSION['user_id'];
 
 // Conti principali (radice) dell'utente, cioè quelli con parent_conto_id NULL
 $stmt = $pdo->prepare(
-    'SELECT id, nome, anno FROM conti WHERE user_id = ? AND parent_conto_id IS NULL ORDER BY anno DESC'
+    'SELECT id, nome, anno FROM conti WHERE user_id = ? AND parent_conto_id IS NULL ORDER BY anno ASC'
 );
 $stmt->execute([$userId]);
 $radici = $stmt->fetchAll();
@@ -38,7 +38,7 @@ foreach ($conti as $c) {
     $totaleGlobale += $c['totale'];
 }
 
-require __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/includes/header.php';
 ?>
 <div class="max-w-5xl mx-auto px-4 py-8">
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
@@ -76,4 +76,4 @@ require __DIR__ . '/includes/header.php';
         </div>
     <?php endif; ?>
 </div>
-<?php require __DIR__ . '/includes/footer.php'; ?>
+<?php require_once __DIR__ . '/includes/footer.php'; ?>
