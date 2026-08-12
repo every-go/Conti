@@ -110,6 +110,7 @@ function getContoBreadcrumb(PDO $pdo, int $contoId): array
         if (!$row) {
             break;
         }
+        //array_unshift permette di inserire in testa l'elemento $row nell'array $chain
         array_unshift($chain, $row);
         $current = $row['parent_conto_id'] !== null ? (int) $row['parent_conto_id'] : null;
     }
@@ -179,4 +180,12 @@ function getUserContiTree(PDO $pdo, int $userId): array
     $walk(0, 0, null);
 
     return $result;
+}
+
+function deleteAccount(PDO $pdo, int $id): bool
+{
+    $stmt = $pdo->prepare(
+        'DELETE FROM utenti WHERE id = ?'
+    );
+    return $stmt->execute([$id]);
 }

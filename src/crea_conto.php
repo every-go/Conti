@@ -69,37 +69,38 @@ require_once __DIR__ . '/includes/header.php';
 
     <form method="post" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-5">
         <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Nome</label>
-            <input type="text" name="nome" required placeholder="es. 2026, Sardegna, Vacanza..."
+            <label for="nome" class="block text-sm font-medium text-slate-700 mb-1">Nome</label>
+            <input id="nome" type="text" name="nome" required placeholder="es. 2026, Sardegna, Vacanza..."
                    class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
         </div>
 
-        <div>
-            <label class="block text-sm font-medium text-slate-700 mb-2">Tipo di conto</label>
+        <fieldset>
+            <legend class="block text-sm font-medium text-slate-700 mb-2">Tipo di conto</legend>
             <div class="flex gap-4 text-sm">
-                <label class="flex items-center gap-2">
-                    <input type="radio" name="tipo_conto" value="principale" <?= $parentId ? '' : 'checked' ?> onchange="toggleContoFields()">
+                <label for="conto_principale" class="flex items-center gap-2">
+                    <input id="conto_principale" type="radio" name="tipo_conto" value="principale" <?= $parentId ? '' : 'checked' ?> onchange="toggleContoFields()">
                     Conto principale (anno)
                 </label>
-                <label class="flex items-center gap-2">
-                    <input type="radio" name="tipo_conto" value="sotto" <?= $parentId ? 'checked' : '' ?> onchange="toggleContoFields()">
+                <label for="sotto_conto" class="flex items-center gap-2">
+                    <input id="sotto_conto" type="radio" name="tipo_conto" value="sotto" <?= $parentId ? 'checked' : '' ?> onchange="toggleContoFields()">
                     Sotto-conto
+                    Conto principale (anno)
                 </label>
-            </div>
-            <p class="text-xs text-slate-400 mt-1">
+                <p class="text-xs text-slate-400 mt-1">
                 Un sotto-conto (es. "Sardegna") eredita l'anno dal suo conto padre e può a sua volta avere altri sotto-conti.
             </p>
-        </div>
+            </div>
+        </fieldset>
 
         <div id="campo-anno">
-            <label class="block text-sm font-medium text-slate-700 mb-1">Anno</label>
-            <input type="number" name="anno" value="<?= htmlspecialchars($annoPrefill) ?>"
+            <label for="anno" class="block text-sm font-medium text-slate-700 mb-1">Anno</label>
+            <input id="anno" type="number" name="anno" value="<?= htmlspecialchars($annoPrefill) ?>"
                    class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
         </div>
 
         <div id="campo-padre" class="<?= $parentId ? '' : 'hidden' ?>">
-            <label class="block text-sm font-medium text-slate-700 mb-1">Conto padre</label>
-            <select name="parent_id" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
+            <label for="conto_padre" class="block text-sm font-medium text-slate-700 mb-1">Conto padre</label>
+            <select id="conto_padre" name="parent_id" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
                 <option value="">— seleziona —</option>
                 <?php foreach ($alberoConti as $c): ?>
                     <option value="<?= $c['id'] ?>" <?= $parentId == $c['id'] ? 'selected' : '' ?>>

@@ -16,11 +16,28 @@ $stmt = $pdo->prepare(
 $stmt->execute([$userId]);
 $categorieEsistenti = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
+// Se arriviamo da un conto specifico (es. dal bottone "+ Nuovo record" dentro conto.php),
+// preseleziona quello. Altrimenti (es. dal link "Nuovo record" nella nav principale),
+// preseleziona il conto principale più recente, così l'inserimento rapido funziona
+// subito senza dover scorrere il menu fino in fondo.
+$contoPrincipalePiuRecente = null;
+foreach ($conti as $c) {
+    $eRadice = (int) $c['depth'] === 0;
+    $ePiuRecente = $contoPrincipalePiuRecente === null || (int) $c['anno'] > (int) $contoPrincipalePiuRecente['anno'];
+    if ($eRadice && $ePiuRecente) {
+        $contoPrincipalePiuRecente = $c;
+    }
+}
+
+$contoIdDefault = isset($_GET['conto_id'])
+    ? (int) $_GET['conto_id']
+    : ($contoPrincipalePiuRecente['id'] ?? 0);
+
 // Valori da mostrare nel form: di default vuoti/precompilati con la data odierna,
 // ma se arriviamo da un errore di validazione vengono sovrascritti con quanto
 // l'utente aveva già digitato, così non deve riscrivere tutto da capo.
 $vals = [
-    'conto_id' => (int) ($_GET['conto_id'] ?? 0),
+    'conto_id' => $contoIdDefault,
     'nome'     => '',
     'soldi'    => '',
     'tipo'     => '',
@@ -87,7 +104,7 @@ require_once __DIR__ . '/includes/header.php';
     <?php else: ?>
     <form method="post" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-5">
         <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Conto</label>
+            <label for="conto_id" class="block text-sm font-medium text-slate-700 mb-1">Conto</label>
             <select name="conto_id" id="conto_id" required onchange="aggiornaLimitiData()" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
                 <?php foreach ($conti as $c): ?>
                     <option value="<?= $c['id'] ?>" data-anno="<?= $c['anno'] ?? '' ?>" <?= $vals['conto_id'] == $c['id'] ? 'selected' : '' ?>>
@@ -98,8 +115,8 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Nome / Categoria</label>
-            <input type="text" name="nome" list="categorie" required placeholder="es. Cibo, Benzina, Stipendio..."
+            <label for="nome" class="block text-sm font-medium text-slate-700 mb-1">Nome / Categoria</label>
+            <input type="text" name="nome" id="nome" list="categorie" required placeholder="es. Cibo, Benzina, Stipendio..."
                    value="<?= htmlspecialchars($vals['nome']) ?>"
                    class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
             <datalist id="categorie">
@@ -113,8 +130,8 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Importo (€)</label>
-            <input type="text" inputmode="decimal" name="soldi" required
+            <label for="soldi" class="block text-sm font-medium text-slate-700 mb-1">Importo <span aria-hidden="true">(€)</span><span class="sr-only">in euro</span></label>
+            <input type="text" inputmode="decimal" name="soldi" id="soldi" required
                    placeholder="-25,50 se è un costo, 100 se un'entrata"
                    value="<?= htmlspecialchars($vals['soldi']) ?>"
                    pattern="-?[0-9]+([.,][0-9]{1,2})?"
@@ -125,32 +142,32 @@ require_once __DIR__ . '/includes/header.php';
             </p>
         </div>
 
-        <div>
-            <label class="block text-sm font-medium text-slate-700 mb-2">Metodo di pagamento</label>
+        <fieldset>
+            <legend class="block text-sm font-medium text-slate-700 mb-2">Metodo di pagamento</legend>
             <div class="flex gap-4 text-sm">
-                <label class="flex items-center gap-2">
-                    <input type="radio" name="tipo" value="Contanti" <?= $vals['tipo'] === 'Contanti' ? 'checked' : '' ?> required>
+                <label for="tipo-contanti" class="flex items-center gap-2">
+                    <input type="radio" name="tipo" id="tipo-contanti" value="Contanti" <?= $vals['tipo'] === 'Contanti' ? 'checked' : '' ?> required>
                     Contanti
                 </label>
-                <label class="flex items-center gap-2">
-                    <input type="radio" name="tipo" value="Bancomat" <?= $vals['tipo'] === 'Bancomat' ? 'checked' : '' ?>>
+                <label for="tipo-bancomat" class="flex items-center gap-2">
+                    <input type="radio" name="tipo" id="tipo-bancomat" value="Bancomat" <?= $vals['tipo'] === 'Bancomat' ? 'checked' : '' ?>>
                     Bancomat
                 </label>
             </div>
-        </div>
+        </fieldset>
 
         <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Data</label>
+            <label for="data" class="block text-sm font-medium text-slate-700 mb-1">Data</label>
             <input type="date" name="data" id="data" value="<?= htmlspecialchars($vals['data']) ?>" required
                    class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
             <p class="text-xs text-slate-400 mt-1" id="nota-anno-data"></p>
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">
+            <label for="note" class="block text-sm font-medium text-slate-700 mb-1">
                 Note <span class="text-slate-400 font-normal">(opzionale)</span>
             </label>
-            <input type="text" name="note" placeholder="es. non ricordo da quale transazione"
+            <input id="nome" type="text" name="note" placeholder="es. non ricordo da quale transazione"
                    value="<?= htmlspecialchars($vals['note']) ?>"
                    class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
         </div>

@@ -38,6 +38,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body class="bg-slate-100 min-h-screen flex items-center justify-center px-4">
     <div class="w-full max-w-sm">
+        <?php if (isset($_GET['eliminato'])): ?>
+            <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg px-4 py-3 mb-4 text-sm">
+                Account eliminato correttamente.
+            </div>
+        <?php endif; ?>
         <h1 class="text-2xl font-bold text-slate-800 text-center mb-6">💶 Conti Famiglia</h1>
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <h2 class="text-lg font-semibold text-slate-700 mb-4">Accedi</h2>
@@ -50,13 +55,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <form method="post" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Username</label>
-                    <input type="text" name="username" required autofocus
+                    <label for="username" class="block text-sm font-medium text-slate-700 mb-1">Username</label>
+                    <input id="username" type="text" name="username" required autofocus
                            class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Password</label>
-                    <input type="password" name="password" required
+                    <label for="password" class="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                    <input id="password" type="password" name="password" required
                            class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
                 </div>
                 <button type="submit" class="w-full bg-slate-800 text-white py-2.5 rounded-lg font-medium hover:bg-slate-700 transition">

@@ -70,8 +70,8 @@ require_once __DIR__ . '/includes/header.php';
 
     <form method="get" class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <div>
-            <label class="block text-xs font-medium text-slate-500 mb-1">Conto</label>
-            <select name="conto_id" class="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
+            <label for="conto" class="block text-xs font-medium text-slate-500 mb-1">Conto</label>
+            <select id="conto" name="conto_id" class="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
                 <option value="">Tutti</option>
                 <?php foreach ($conti as $c): ?>
                     <option value="<?= $c['id'] ?>" <?= (string) $filtroConto === (string) $c['id'] ? 'selected' : '' ?>>
@@ -81,8 +81,8 @@ require_once __DIR__ . '/includes/header.php';
             </select>
         </div>
         <div>
-            <label class="block text-xs font-medium text-slate-500 mb-1">Categoria</label>
-            <input type="text" name="nome" list="categorie" value="<?= htmlspecialchars($filtroNome) ?>" placeholder="es. Benzina"
+            <label for="nome" class="block text-xs font-medium text-slate-500 mb-1">Categoria</label>
+            <input id="nome" type="text" name="nome" list="categorie" value="<?= htmlspecialchars($filtroNome) ?>" placeholder="es. Benzina"
                    class="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
             <datalist id="categorie">
                 <?php foreach ($categorieEsistenti as $cat): ?>
@@ -91,20 +91,20 @@ require_once __DIR__ . '/includes/header.php';
             </datalist>
         </div>
         <div>
-            <label class="block text-xs font-medium text-slate-500 mb-1">Tipo</label>
-            <select name="tipo" class="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
+            <label for="tipo" class="block text-xs font-medium text-slate-500 mb-1">Tipo</label>
+            <select id="tipo" name="tipo" class="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
                 <option value="">Tutti</option>
                 <option value="Contanti" <?= $filtroTipo === 'Contanti' ? 'selected' : '' ?>>Contanti</option>
                 <option value="Bancomat" <?= $filtroTipo === 'Bancomat' ? 'selected' : '' ?>>Bancomat</option>
             </select>
         </div>
         <div>
-            <label class="block text-xs font-medium text-slate-500 mb-1">Da</label>
-            <input type="date" name="da" value="<?= htmlspecialchars($filtroDa) ?>" class="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
+            <label for="data" class="block text-xs font-medium text-slate-500 mb-1">Da</label>
+            <input id="data" type="date" name="da" value="<?= htmlspecialchars($filtroDa) ?>" class="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
         </div>
         <div>
-            <label class="block text-xs font-medium text-slate-500 mb-1">A</label>
-            <input type="date" name="a" value="<?= htmlspecialchars($filtroA) ?>" class="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
+            <label for="aData" class="block text-xs font-medium text-slate-500 mb-1">A</label>
+            <input id="aData" type="date" name="a" value="<?= htmlspecialchars($filtroA) ?>" class="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
         </div>
         <div class="sm:col-span-2 lg:col-span-5 flex gap-2">
             <button type="submit" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition">

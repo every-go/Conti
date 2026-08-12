@@ -15,7 +15,7 @@
             <a href="inserisci.php" class="hover:text-slate-300">Nuovo record</a>
             <a href="storico.php" class="hover:text-slate-300">Storico</a>
             <span class="text-slate-500 hidden sm:inline">|</span>
-            <span class="text-slate-300 hidden sm:inline"><?= htmlspecialchars($_SESSION['username'] ?? '') ?></span>
+            <a href="delete.php" class="hover:text-slate-300">Elimina account</a>
             <a href="logout.php" class="hover:text-slate-300">Esci</a>
         </div>
     </div>

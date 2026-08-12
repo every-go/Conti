@@ -65,19 +65,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <form method="post" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Username</label>
-                    <input type="text" name="username" required minlength="3" autofocus
+                    <label for="username" class="block text-sm font-medium text-slate-700 mb-1">Username</label>
+                    <input id="username" type="text" name="username" required minlength="3" autofocus
                            value="<?= htmlspecialchars($_POST['username'] ?? '') ?>"
                            class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Password</label>
-                    <input type="password" name="password" required minlength="6"
+                    <label for="password" class="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                    <input id="password" type="password" name="password" required minlength="6"
                            class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Conferma password</label>
-                    <input type="password" name="conferma" required minlength="6"
+                    <label for="confirm" class="block text-sm font-medium text-slate-700 mb-1">Conferma password</label>
+                    <input id="confirm" type="password" name="conferma" required minlength="6"
                            class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
                 </div>
                 <button type="submit" class="w-full bg-slate-800 text-white py-2.5 rounded-lg font-medium hover:bg-slate-700 transition">

@@ -88,7 +88,7 @@ require_once __DIR__ . '/includes/header.php';
         <input type="hidden" name="id" value="<?= $recordId ?>">
 
         <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Conto</label>
+            <label for="conto_id" class="block text-sm font-medium text-slate-700 mb-1">Conto</label>
             <select name="conto_id" id="conto_id" required onchange="aggiornaLimitiData()" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
                 <?php foreach ($conti as $c): ?>
                     <option value="<?= $c['id'] ?>" data-anno="<?= $c['anno'] ?? '' ?>" <?= $record['conto_id'] == $c['id'] ? 'selected' : '' ?>>
@@ -99,8 +99,8 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Nome / Categoria</label>
-            <input type="text" name="nome" list="categorie" required value="<?= htmlspecialchars($record['nome']) ?>"
+            <label for="nome" class="block text-sm font-medium text-slate-700 mb-1">Nome / Categoria</label>
+            <input id="nome" type="text" name="nome" list="categorie" required value="<?= htmlspecialchars($record['nome']) ?>"
                    class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
             <datalist id="categorie">
                 <?php foreach ($categorieEsistenti as $cat): ?>
@@ -110,8 +110,8 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Importo (€)</label>
-            <input type="text" inputmode="decimal" name="soldi" required value="<?= htmlspecialchars((string) $record['soldi']) ?>"
+            <label for="soldi" class="block text-sm font-medium text-slate-700 mb-1">Importo <span aria-hidden="true">(€)</span><span class="sr-only">in euro</span></label>
+            <input id="soldi" type="text" inputmode="decimal" name="soldi" required value="<?= htmlspecialchars((string) $record['soldi']) ?>"
                    class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
             <p class="text-xs text-slate-400 mt-1">
                 Utile anche per correzioni non programmate (es. rimborsi di cui non ricordi la transazione originale):
@@ -119,32 +119,32 @@ require_once __DIR__ . '/includes/header.php';
             </p>
         </div>
 
-        <div>
-            <label class="block text-sm font-medium text-slate-700 mb-2">Metodo di pagamento</label>
+        <fieldset>
+            <legend class="block text-sm font-medium text-slate-700 mb-2">Metodo di pagamento</legend>
             <div class="flex gap-4 text-sm">
-                <label class="flex items-center gap-2">
-                    <input type="radio" name="tipo" value="Contanti" <?= $record['tipo'] === 'Contanti' ? 'checked' : '' ?> required>
+                <label for="tipo-contanti" class="flex items-center gap-2">
+                    <input type="radio" name="tipo" id="tipo-contanti" value="Contanti" <?= $record['tipo'] === 'Contanti' ? 'checked' : '' ?> required>
                     Contanti
                 </label>
-                <label class="flex items-center gap-2">
-                    <input type="radio" name="tipo" value="Bancomat" <?= $record['tipo'] === 'Bancomat' ? 'checked' : '' ?>>
+                <label for="tipo-bancomat" class="flex items-center gap-2">
+                    <input type="radio" name="tipo" id="tipo-bancomat" value="Bancomat" <?= $record['tipo'] === 'Bancomat' ? 'checked' : '' ?>>
                     Bancomat
                 </label>
             </div>
-        </div>
+        </fieldset>
 
         <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Data</label>
+            <label for="data" class="block text-sm font-medium text-slate-700 mb-1">Data</label>
             <input type="date" name="data" id="data" value="<?= htmlspecialchars($record['data']) ?>" required
                    class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
             <p class="text-xs text-slate-400 mt-1" id="nota-anno-data"></p>
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">
+            <label for="note" class="block text-sm font-medium text-slate-700 mb-1">
                 Note <span class="text-slate-400 font-normal">(opzionale)</span>
             </label>
-            <input type="text" name="note" value="<?= htmlspecialchars($record['note'] ?? '') ?>"
+            <input id="note" type="text" name="note" value="<?= htmlspecialchars($record['note'] ?? '') ?>"
                    class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
         </div>
 

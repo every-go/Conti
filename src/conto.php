@@ -81,8 +81,11 @@ require_once __DIR__ . '/includes/header.php';
 
     <div class="grid md:grid-cols-2 gap-6">
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="px-5 py-3 border-b border-slate-200 font-semibold text-slate-700">Voci</div>
             <table class="w-full text-sm">
+                <thead>
+                    <th>Voce</th>
+                    <th>Somma</th>
+                </thead>
                 <tbody>
                 <?php foreach ($categorie as $cat): ?>
                     <tr class="border-b border-slate-100 last:border-0">
