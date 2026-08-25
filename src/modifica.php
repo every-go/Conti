@@ -7,6 +7,7 @@ requireLogin();
 $userId = (int) $_SESSION['user_id'];
 $errore = '';
 $recordId = (int) ($_GET['id'] ?? $_POST['id'] ?? 0);
+$ritorno = $_GET['ritorno'] ?? $_POST['ritorno'] ?? '';
 
 if (!$recordId || !recordBelongsToUser($pdo, $recordId, $userId)) {
     header('Location: storico.php');
@@ -16,6 +17,9 @@ if (!$recordId || !recordBelongsToUser($pdo, $recordId, $userId)) {
 $stmt = $pdo->prepare('SELECT * FROM record WHERE id = ?');
 $stmt->execute([$recordId]);
 $record = $stmt->fetch();
+
+$record['tipo-soldi'] = $record['soldi'] < 0 ? 'Uscita' : 'Entrata';
+$record['soldi'] = abs($record['soldi']);
 
 $conti = getUserContiTree($pdo, $userId);
 
@@ -29,14 +33,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['elimina'])) {
         $stmt = $pdo->prepare('DELETE FROM record WHERE id = ?');
         $stmt->execute([$recordId]);
-        header('Location: storico.php?eliminato=1');
+        header('Location: storico.php?eliminato=1' . ($ritorno !== '' ? '&' . $ritorno : ''));
         exit;
     }
 
     $contoId = (int) ($_POST['conto_id'] ?? 0);
     $nome = trim($_POST['nome'] ?? '');
     $soldiRaw = str_replace(',', '.', trim($_POST['soldi'] ?? ''));
-    $tipo = $_POST['tipo'] ?? '';
+    $tipo = $_POST['tipo'] ?? '';           // Contanti / Bancomat
+    $tipoSoldi = $_POST['tipo-soldi'] ?? ''; // Entrata / Uscita
     $data = $_POST['data'] ?? '';
     $note = trim($_POST['note'] ?? '');
 
@@ -46,30 +51,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errore = 'Inserisci il nome/categoria.';
     } elseif (!is_numeric($soldiRaw)) {
         $errore = 'Inserisci un importo valido.';
+    } elseif (!in_array($tipoSoldi, ['Entrata', 'Uscita'], true)) {
+        $errore = 'Seleziona il tipo di transazione.';
     } elseif (!in_array($tipo, ['Contanti', 'Bancomat'], true)) {
-        $errore = 'Seleziona il metodo di pagamento.';
+        $errore = 'Seleziona il metodo.';
     } elseif ($data === '') {
         $errore = 'Inserisci una data.';
     } elseif (($annoConto = getContoAnno($pdo, $contoId)) !== null && (int) substr($data, 0, 4) !== $annoConto) {
         $errore = "La data deve rientrare nell'anno {$annoConto}, l'anno del conto selezionato.";
     } else {
+        $importo = $tipoSoldi === 'Uscita' ? -abs((float) $soldiRaw) : abs((float) $soldiRaw);
+
         $stmt = $pdo->prepare(
             'UPDATE record SET conto_id = ?, nome = ?, soldi = ?, tipo = ?, data = ?, note = ? WHERE id = ?'
         );
-        $stmt->execute([$contoId, $nome, (float) $soldiRaw, $tipo, $data, $note !== '' ? $note : null, $recordId]);
-        header('Location: storico.php?modificato=1');
+        $stmt->execute([$contoId, $nome, $importo, $tipo, $data, $note !== '' ? $note : null, $recordId]);
+        header('Location: storico.php?modificato=1' . ($ritorno !== '' ? '&' . $ritorno : ''));
         exit;
     }
 
     // Ripopola il form con i dati appena inviati, in caso di errore di validazione
     $record = [
-        'id'       => $recordId,
-        'conto_id' => $contoId,
-        'nome'     => $nome,
-        'soldi'    => $soldiRaw,
-        'tipo'     => $tipo,
-        'data'     => $data,
-        'note'     => $note,
+        'id'         => $recordId,
+        'conto_id'   => $contoId,
+        'nome'       => $nome,
+        'soldi'      => $soldiRaw,
+        'tipo'       => $tipo,
+        'tipo-soldi' => $tipoSoldi,
+        'data'       => $data,
+        'note'       => $note,
     ];
 }
 
@@ -109,9 +119,23 @@ require_once __DIR__ . '/includes/header.php';
             </datalist>
         </div>
 
+        <fieldset class="mb-4">
+            <legend class="block text-sm font-medium text-slate-700 mb-2">Tipo di transazione</legend>
+            <div class="flex gap-4 text-sm">
+                <label for="tipo-entrata" class="flex items-center gap-2">
+                    <input type="radio" name="tipo-soldi" id="tipo-entrata" value="Entrata" <?= $record['tipo-soldi'] === 'Entrata' ? 'checked' : '' ?> required>
+                    Entrata
+                </label>
+                <label for="tipo-uscita" class="flex items-center gap-2">
+                    <input type="radio" name="tipo-soldi" id="tipo-uscita" value="Uscita" <?= $record['tipo-soldi'] === 'Uscita' ? 'checked' : '' ?>>
+                    Uscita
+                </label>
+            </div>
+        </fieldset>
+
         <div>
             <label for="soldi" class="block text-sm font-medium text-slate-700 mb-1">Importo <span aria-hidden="true">(€)</span><span class="sr-only">in euro</span></label>
-            <input id="soldi" type="text" inputmode="decimal" name="soldi" required value="<?= htmlspecialchars((string) $record['soldi']) ?>"
+            <input id="soldi" type="text" inputmode="decimal" name="soldi" required value="<?= htmlspecialchars((string) $record['soldi']) ?>" autocomplete="off"
                    class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
             <p class="text-xs text-slate-400 mt-1">
                 Utile anche per correzioni non programmate (es. rimborsi di cui non ricordi la transazione originale):
@@ -120,7 +144,7 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
         <fieldset>
-            <legend class="block text-sm font-medium text-slate-700 mb-2">Metodo di pagamento</legend>
+            <legend class="block text-sm font-medium text-slate-700 mb-2">Metodo</legend>
             <div class="flex gap-4 text-sm">
                 <label for="tipo-contanti" class="flex items-center gap-2">
                     <input type="radio" name="tipo" id="tipo-contanti" value="Contanti" <?= $record['tipo'] === 'Contanti' ? 'checked' : '' ?> required>
@@ -144,13 +168,16 @@ require_once __DIR__ . '/includes/header.php';
             <label for="note" class="block text-sm font-medium text-slate-700 mb-1">
                 Note <span class="text-slate-400 font-normal">(opzionale)</span>
             </label>
-            <input id="note" type="text" name="note" value="<?= htmlspecialchars($record['note'] ?? '') ?>"
+            <input id="note" type="text" name="note" value="<?= htmlspecialchars($record['note'] ?? '') ?>" autocomplete="off"
                    class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
         </div>
 
         <button type="submit" class="w-full bg-slate-800 text-white py-2.5 rounded-lg font-medium hover:bg-slate-700 transition">
             Salva modifiche
         </button>
+
+        <input type="hidden" name="ritorno" value="<?= htmlspecialchars($ritorno) ?>">
+
     </form>
 
     <script>

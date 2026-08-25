@@ -37,21 +37,24 @@ $contoIdDefault = isset($_GET['conto_id'])
 // ma se arriviamo da un errore di validazione vengono sovrascritti con quanto
 // l'utente aveva già digitato, così non deve riscrivere tutto da capo.
 $vals = [
-    'conto_id' => $contoIdDefault,
-    'nome'     => '',
-    'soldi'    => '',
-    'tipo'     => '',
-    'data'     => date('Y-m-d'),
-    'note'     => '',
+    'conto_id'   => $contoIdDefault,
+    'nome'       => '',
+    'soldi'      => '',
+    'tipo'       => '',
+    'tipo-soldi' => '',
+    'data'       => date('Y-m-d'),
+    'note'       => '',
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $vals['conto_id'] = (int) ($_POST['conto_id'] ?? 0);
-    $vals['nome']     = trim($_POST['nome'] ?? '');
-    $vals['soldi']    = trim($_POST['soldi'] ?? ''); // teniamo il testo originale per ripopolare il campo
-    $vals['tipo']     = $_POST['tipo'] ?? '';
-    $vals['data']     = $_POST['data'] ?? '';
-    $vals['note']     = trim($_POST['note'] ?? '');
+    $vals['conto_id']   = (int) ($_POST['conto_id'] ?? 0);
+    $vals['nome']       = trim($_POST['nome'] ?? '');
+    $vals['soldi']      = trim($_POST['soldi'] ?? ''); // teniamo il testo originale per ripopolare il campo
+    $vals['tipo-soldi'] = $_POST['tipo-soldi'] ?? '';
+    $vals['tipo']       = $_POST['tipo'] ?? '';
+    $vals['data']       = $_POST['data'] ?? '';
+    $vals['note']       = trim($_POST['note'] ?? '');
+    $ritorno = $_GET['ritorno'] ?? $_POST['ritorno'] ?? '';
 
     $soldiNormalizzato = str_replace(',', '.', $vals['soldi']);
 
@@ -59,24 +62,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errore = 'Conto non valido.';
     } elseif ($vals['nome'] === '') {
         $errore = 'Inserisci il nome/categoria.';
-    } elseif (!preg_match('/^-?\d+(\.\d{1,2})?$/', $soldiNormalizzato)) {
-        $errore = 'L\'importo può avere al massimo due cifre decimali (es. 8, 8,20, -12,50): niente arrotondamenti automatici, correggi il valore.';
+    } elseif (!preg_match('/^\d+(\.\d{1,2})?$/', $soldiNormalizzato)) {
+    $errore = 'L\'importo può avere al massimo due cifre decimali (es. 8, 8,20): niente arrotondamenti automatici, correggi il valore.';
+    } elseif(!in_array($vals['tipo-soldi'], ['Entrata', 'Uscita'], true)) {
+        $errore = "Inserisci il tipo di transazione.";
     } elseif (!in_array($vals['tipo'], ['Contanti', 'Bancomat'], true)) {
-        $errore = 'Seleziona il metodo di pagamento.';
+        $errore = 'Seleziona il metodo.';
     } elseif ($vals['data'] === '') {
         $errore = 'Inserisci una data.';
     } elseif (($annoConto = getContoAnno($pdo, $vals['conto_id'])) !== null && (int) substr($vals['data'], 0, 4) !== $annoConto) {
         $errore = "La data deve rientrare nell'anno {$annoConto}, l'anno del conto selezionato.";
     } else {
-        // Non serve toccare la tabella "conti": il totale è sempre calcolato
-        // al volo con una SUM(), quindi è sempre aggiornato automaticamente.
+        $importo = $vals['tipo-soldi'] === 'Uscita' ? -abs((float) $soldiNormalizzato) : abs((float) $soldiNormalizzato);
+
         $stmt = $pdo->prepare(
             'INSERT INTO record (conto_id, nome, soldi, tipo, data, note) VALUES (?, ?, ?, ?, ?, ?)'
         );
         $stmt->execute([
             $vals['conto_id'],
             $vals['nome'],
-            (float) $soldiNormalizzato,
+            $importo,
             $vals['tipo'],
             $vals['data'],
             $vals['note'] !== '' ? $vals['note'] : null,
@@ -129,21 +134,36 @@ require_once __DIR__ . '/includes/header.php';
             </p>
         </div>
 
+        <fieldset class="mb-4">
+            <legend class="block text-sm font-medium text-slate-700 mb-2">Tipo di transazione</legend>
+            <div class="flex gap-4 text-sm">
+                <label for="tipo-entrata" class="flex items-center gap-2">
+                    <input type="radio" name="tipo-soldi" id="tipo-entrata" value="Entrata" <?= $vals['tipo-soldi'] === 'Entrata' ? 'checked' : '' ?> required>
+                    Entrata
+                </label>
+                <label for="tipo-uscita" class="flex items-center gap-2">
+                    <input type="radio" name="tipo-soldi" id="tipo-uscita" value="Uscita" <?= $vals['tipo-soldi'] === 'Uscita' ? 'checked' : '' ?>>
+                    Uscita
+                </label>
+            </div>
+        </fieldset>
+
         <div>
             <label for="soldi" class="block text-sm font-medium text-slate-700 mb-1">Importo <span aria-hidden="true">(€)</span><span class="sr-only">in euro</span></label>
-            <input type="text" inputmode="decimal" name="soldi" id="soldi" required
-                   placeholder="-25,50 se è un costo, 100 se un'entrata"
-                   value="<?= htmlspecialchars($vals['soldi']) ?>"
-                   pattern="-?[0-9]+([.,][0-9]{1,2})?"
-                   title="Massimo due cifre decimali, es. 8, 8,20 o -12,50"
-                   class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
+
+            <input type="text" inputmode="decimal" name="soldi" id="soldi" required autocomplete="off"
+                placeholder="es. 25,50"
+                value="<?= htmlspecialchars($vals['soldi']) ?>"
+                pattern="[0-9]+([.,][0-9]{1,2})?"
+                title="Massimo due cifre decimali, es. 8 oppure 8,20"
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
             <p class="text-xs text-slate-400 mt-1">
-                Metti il segno "-" davanti se è una spesa. Massimo 2 cifre decimali, senza arrotondamenti.
+                Massimo 2 cifre decimali, senza arrotondamenti.
             </p>
         </div>
 
         <fieldset>
-            <legend class="block text-sm font-medium text-slate-700 mb-2">Metodo di pagamento</legend>
+            <legend class="block text-sm font-medium text-slate-700 mb-2">Metodo</legend>
             <div class="flex gap-4 text-sm">
                 <label for="tipo-contanti" class="flex items-center gap-2">
                     <input type="radio" name="tipo" id="tipo-contanti" value="Contanti" <?= $vals['tipo'] === 'Contanti' ? 'checked' : '' ?> required>
@@ -167,7 +187,7 @@ require_once __DIR__ . '/includes/header.php';
             <label for="note" class="block text-sm font-medium text-slate-700 mb-1">
                 Note <span class="text-slate-400 font-normal">(opzionale)</span>
             </label>
-            <input id="nome" type="text" name="note" placeholder="es. non ricordo da quale transazione"
+            <input id="note" type="text" name="note" placeholder="es. non ricordo da quale transazione" autocomplete="off"
                    value="<?= htmlspecialchars($vals['note']) ?>"
                    class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
         </div>

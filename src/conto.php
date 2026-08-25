@@ -81,29 +81,31 @@ require_once __DIR__ . '/includes/header.php';
 
     <div class="grid md:grid-cols-2 gap-6">
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <table class="w-full text-sm">
+            <table class="w-full text-sm border-separate border-spacing-y-2">
                 <thead>
-                    <th>Voce</th>
-                    <th>Somma</th>
+                    <tr>
+                        <th>Voce</th>
+                        <th>Somma</th>
+                    </tr>
                 </thead>
                 <tbody>
+                <?php foreach ($figli as $f): ?>
+                    <tr class="border-b border-slate-100 last:border-0 bg-slate-50">
+                        <td class="px-5 py-2">
+                            <a href="conto.php?id=<?= $f['id'] ?>" class="text-slate-700 font-medium hover:underline">
+                                <span aria-hidden="true">📁 </span><?= htmlspecialchars($f['nome']) ?>
+                            </a>
+                        </td>
+                        <td class="px-5 py-2 text-right font-medium <?= moneyColorClass($f['totale']) ?>">
+                            <?= formatMoney($f['totale']) ?>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
                 <?php foreach ($categorie as $cat): ?>
                     <tr class="border-b border-slate-100 last:border-0">
                         <td class="px-5 py-2 text-slate-600"><?= htmlspecialchars($cat['nome']) ?></td>
                         <td class="px-5 py-2 text-right font-medium <?= moneyColorClass((float) $cat['totale']) ?>">
                             <?= formatMoney((float) $cat['totale']) ?>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-                <?php foreach ($figli as $f): ?>
-                    <tr class="border-b border-slate-100 last:border-0 bg-slate-50">
-                        <td class="px-5 py-2">
-                            <a href="conto.php?id=<?= $f['id'] ?>" class="text-slate-700 font-medium hover:underline">
-                                📁 <?= htmlspecialchars($f['nome']) ?>
-                            </a>
-                        </td>
-                        <td class="px-5 py-2 text-right font-medium <?= moneyColorClass($f['totale']) ?>">
-                            <?= formatMoney($f['totale']) ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>

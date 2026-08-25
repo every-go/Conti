@@ -12,6 +12,13 @@ $filtroNome = trim($_GET['nome'] ?? '');
 $filtroTipo = $_GET['tipo'] ?? '';
 $filtroDa = $_GET['da'] ?? '';
 $filtroA = $_GET['a'] ?? '';
+$queryFiltri = http_build_query(array_filter([
+    'conto_id' => $filtroConto,
+    'nome'     => $filtroNome,
+    'tipo'     => $filtroTipo,
+    'da'       => $filtroDa,
+    'a'        => $filtroA,
+], fn ($v) => $v !== ''));
 
 $sql = 'SELECT r.*, c.nome AS conto_nome FROM record r JOIN conti c ON r.conto_id = c.id WHERE c.user_id = ?';
 $params = [$userId];
@@ -146,7 +153,7 @@ require_once __DIR__ . '/includes/header.php';
                     </td>
                     <td class="px-4 py-2 text-slate-400 italic"><?= htmlspecialchars($r['note'] ?? '') ?></td>
                     <td class="px-4 py-2 text-right">
-                        <a href="modifica.php?id=<?= $r['id'] ?>" class="text-slate-500 hover:text-slate-800 hover:underline">Modifica</a>
+                        <a href="modifica.php?id=<?= $r['id'] ?>&ritorno=<?= urlencode($queryFiltri) ?>" class="text-slate-500 hover:text-slate-800 hover:underline">Modifica</a>
                     </td>
                 </tr>
             <?php endforeach; ?>
