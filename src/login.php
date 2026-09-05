@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/includes/bootstrap.php';
 
-if (!empty($_SESSION['user_id'])) {
+if (!empty($_SESSION['username'])) {
     header('Location: dashboard.php');
     exit;
 }
@@ -13,13 +13,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
 
-    $stmt = $pdo->prepare('SELECT id, username, password FROM utenti WHERE username = ?');
+    $stmt = $pdo->prepare('SELECT username, password FROM utenti WHERE username = ?');
     $stmt->execute([$username]);
     $user = $stmt->fetch();
 
     if ($user && password_verify($password, $user['password'])) {
         session_regenerate_id(true);
-        $_SESSION['user_id'] = (int) $user['id'];
         $_SESSION['username'] = $user['username'];
         header('Location: dashboard.php');
         exit;
@@ -43,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 Account eliminato correttamente.
             </div>
         <?php endif; ?>
-        <h1 class="text-2xl font-bold text-slate-800 text-center mb-6">💶 Conti Famiglia</h1>
+        <h1 class="text-2xl font-bold text-slate-800 text-center mb-6"><span aria-hidden="true">💶</span> Conti Famiglia</h1>
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <h2 class="text-lg font-semibold text-slate-700 mb-4">Accedi</h2>
 
@@ -77,5 +76,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </p>
         </div>
     </div>
+<?php require_once __DIR__ . '/includes/logout-modal.php'; ?>
 </body>
 </html>

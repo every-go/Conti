@@ -4,8 +4,8 @@ require_once __DIR__ . '/includes/bootstrap.php';
 require_once __DIR__ . '/includes/auth.php';
 requireLogin();
 
-$userId = (int) $_SESSION['user_id'];
-$conti = getUserContiTree($pdo, $userId);
+$username = $_SESSION['username'];
+$conti = getUserContiTree($pdo, $username);
 
 $filtroConto = $_GET['conto_id'] ?? '';
 $filtroNome = trim($_GET['nome'] ?? '');
@@ -20,8 +20,8 @@ $queryFiltri = http_build_query(array_filter([
     'a'        => $filtroA,
 ], fn ($v) => $v !== ''));
 
-$sql = 'SELECT r.*, c.nome AS conto_nome FROM record r JOIN conti c ON r.conto_id = c.id WHERE c.user_id = ?';
-$params = [$userId];
+$sql = 'SELECT r.*, c.nome AS conto_nome FROM record r JOIN conti c ON r.conto_id = c.id WHERE c.username = ?';
+$params = [$username];
 
 if ($filtroConto !== '') {
     $sql .= ' AND r.conto_id = ?';
@@ -55,13 +55,31 @@ foreach ($records as $r) {
 }
 
 $stmt = $pdo->prepare(
-    'SELECT DISTINCT r.nome FROM record r JOIN conti c ON r.conto_id = c.id WHERE c.user_id = ? ORDER BY r.nome'
+    'SELECT DISTINCT r.nome FROM record r JOIN conti c ON r.conto_id = c.id WHERE c.username = ? ORDER BY r.nome'
 );
-$stmt->execute([$userId]);
+$stmt->execute([$username]);
 $categorieEsistenti = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-require_once __DIR__ . '/includes/header.php';
 ?>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conti Famiglia</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen">
+<nav class="bg-slate-800 text-white">
+    <div class="max-w-5xl mx-auto px-4 flex items-center justify-between h-14">
+        <a href="dashboard.php" class="font-semibold"><span aria-hidden="true">💶</span> Conti Famiglia</a>
+        <div class="flex items-center gap-4 text-sm">
+            <a href="inserisci.php" class="hover:text-slate-300">Nuovo record</a>
+            <a href="delete.php" class="hover:text-slate-300">Elimina account</a>
+            <a href="logout.php" id="link-logout" class="hover:text-slate-300">Esci</a>
+        </div>
+    </div>
+</nav>
 <div class="max-w-5xl mx-auto px-4 py-8">
     <h1 class="text-2xl font-bold text-slate-800 mb-6">Storico movimenti</h1>
 
@@ -123,11 +141,6 @@ require_once __DIR__ . '/includes/header.php';
         </div>
     </form>
 
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-4 flex items-center justify-between">
-        <span class="text-sm text-slate-500"><?= count($records) ?> movimenti</span>
-        <span class="text-lg font-bold <?= moneyColorClass($totaleFiltrato) ?>"><?= formatMoney($totaleFiltrato) ?></span>
-    </div>
-
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
@@ -164,4 +177,7 @@ require_once __DIR__ . '/includes/header.php';
         </table>
     </div>
 </div>
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+
+<?php require_once __DIR__ . '/includes/logout-modal.php'; ?>
+</body>
+</html>

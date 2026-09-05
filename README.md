@@ -29,12 +29,11 @@ mazzaretto-conti/
         ├── bootstrap.php        Avvia sessione + carica db.php e functions.php
         ├── auth.php              requireLogin()
         ├── functions.php         Formattazione importi, calcoli ricorsivi sui conti, controlli di sicurezza
-        ├── header.php / footer.php   Layout comune (nav + Tailwind)
 ```
 
 ## Come funziona lo schema dati
 
-- **utenti**: `id`, `username` (UNIQUE), `password` (hashata con `password_hash`, mai in chiaro)
+- **utenti**: `username` (PRIMARY KEY), `password` (hashata con `password_hash`)
 - **conti**: `id`, `nome`, `anno` (valorizzato solo se è un conto principale), `user_id`,
   `parent_conto_id` (NULL = conto principale, altrimenti sotto-conto — supporta livelli infiniti)
 - **record**: `id`, `conto_id`, `nome` (categoria, es. "Cibo"), `soldi` (negativo se costo),

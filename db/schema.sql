@@ -3,8 +3,7 @@
 -- (montato in /docker-entrypoint-initdb.d)
 
 CREATE TABLE IF NOT EXISTS utenti (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
+    username VARCHAR(16) PRIMARY KEY,
     password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -13,10 +12,10 @@ CREATE TABLE IF NOT EXISTS conti (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     anno INT NULL,                       -- valorizzato solo se è un conto principale (parent_conto_id IS NULL)
-    user_id INT NOT NULL,
+    username VARCHAR(16) NOT NULL,
     parent_conto_id INT NULL,            -- NULL = conto principale, altrimenti sotto-conto (livelli infiniti)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_conti_user FOREIGN KEY (user_id) REFERENCES utenti(id) ON DELETE CASCADE,
+    CONSTRAINT fk_conti_user FOREIGN KEY (username) REFERENCES utenti(username) ON DELETE CASCADE,
     CONSTRAINT fk_conti_parent FOREIGN KEY (parent_conto_id) REFERENCES conti(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -32,7 +31,7 @@ CREATE TABLE IF NOT EXISTS record (
     CONSTRAINT fk_record_conto FOREIGN KEY (conto_id) REFERENCES conti(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE INDEX idx_conti_user ON conti(user_id);
+CREATE INDEX idx_conti_user ON conti(username);
 CREATE INDEX idx_conti_parent ON conti(parent_conto_id);
 CREATE INDEX idx_record_conto ON record(conto_id);
 CREATE INDEX idx_record_data ON record(data);

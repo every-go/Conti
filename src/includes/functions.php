@@ -5,7 +5,7 @@
  */
 function formatMoney(float $amount): string
 {
-    return '€ ' . number_format($amount, 2, ',', '.');
+    return $amount > 0 ? '€ ' . number_format($amount, 2, ',', '.') : '-€' . number_format(-$amount, 2, ',', '.');
 }
 
 /**
@@ -122,39 +122,39 @@ function getContoBreadcrumb(PDO $pdo, int $contoId): array
  * Verifica che un conto appartenga davvero all'utente indicato.
  * Va sempre chiamata prima di leggere/scrivere un conto specifico.
  */
-function contoBelongsToUser(PDO $pdo, int $contoId, int $userId): bool
+function contoBelongsToUser(PDO $pdo, int $contoId, string $username): bool
 {
-    $stmt = $pdo->prepare('SELECT user_id FROM conti WHERE id = ?');
+    $stmt = $pdo->prepare('SELECT username FROM conti WHERE id = ?');
     $stmt->execute([$contoId]);
     $row = $stmt->fetch();
 
-    return $row && (int) $row['user_id'] === $userId;
+    return $row && $row['username'] === $username;
 }
 
 /**
  * Verifica che un record appartenga (tramite il suo conto) all'utente indicato.
  */
-function recordBelongsToUser(PDO $pdo, int $recordId, int $userId): bool
+function recordBelongsToUser(PDO $pdo, int $recordId, string $username): bool
 {
     $stmt = $pdo->prepare(
-        'SELECT c.user_id FROM record r JOIN conti c ON r.conto_id = c.id WHERE r.id = ?'
+        'SELECT c.username FROM record r JOIN conti c ON r.conto_id = c.id WHERE r.id = ?'
     );
     $stmt->execute([$recordId]);
     $row = $stmt->fetch();
 
-    return $row && (int) $row['user_id'] === $userId;
+    return $row && $row['username'] === $username;
 }
 
 /**
  * Elenco di tutti i conti di un utente, in ordine gerarchico, con un campo
  * "depth" (profondità) utile per indentare le voci nelle <select>.
  */
-function getUserContiTree(PDO $pdo, int $userId): array
+function getUserContiTree(PDO $pdo, string $username): array
 {
     $stmt = $pdo->prepare(
-        'SELECT id, nome, anno, parent_conto_id FROM conti WHERE user_id = ? ORDER BY anno ASC, nome ASC'
+        'SELECT id, nome, anno, parent_conto_id FROM conti WHERE username = ? ORDER BY anno ASC, nome ASC'
     );
-    $stmt->execute([$userId]);
+    $stmt->execute([$username]);
     $all = $stmt->fetchAll();
 
     $byParent = [];

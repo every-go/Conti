@@ -4,7 +4,7 @@ require_once __DIR__ . '/includes/bootstrap.php';
 require_once __DIR__ . '/includes/auth.php';
 requireLogin();
 
-$userId = (int) $_SESSION['user_id'];
+$username = $_SESSION['username'];
 $errore = '';
 
 $parentId = null;
@@ -13,12 +13,12 @@ if (isset($_GET['parent_id'])) {
 } elseif (isset($_POST['parent_id']) && $_POST['parent_id'] !== '') {
     $parentId = (int) $_POST['parent_id'];
 }
-if ($parentId && !contoBelongsToUser($pdo, $parentId, $userId)) {
+if ($parentId && !contoBelongsToUser($pdo, $parentId, $username)) {
     $parentId = null;
 }
 
 $annoPrefill = $_GET['anno'] ?? (string) date('Y');
-$alberoConti = getUserContiTree($pdo, $userId);
+$alberoConti = getUserContiTree($pdo, $username);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nome = trim($_POST['nome'] ?? '');
@@ -35,29 +35,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         if ($tipoConto === 'sotto') {
             $pId = (int) $parentPost;
-            if (!contoBelongsToUser($pdo, $pId, $userId)) {
+            if (!contoBelongsToUser($pdo, $pId, $username)) {
                 $errore = 'Conto padre non valido.';
             } else {
                 $stmt = $pdo->prepare(
-                    'INSERT INTO conti (nome, anno, user_id, parent_conto_id) VALUES (?, NULL, ?, ?)'
+                    'INSERT INTO conti (nome, anno, username, parent_conto_id) VALUES (?, NULL, ?, ?)'
                 );
-                $stmt->execute([$nome, $userId, $pId]);
+                $stmt->execute([$nome, $username, $pId]);
                 header('Location: conto.php?id=' . $pdo->lastInsertId());
                 exit;
             }
         } else {
             $stmt = $pdo->prepare(
-                'INSERT INTO conti (nome, anno, user_id, parent_conto_id) VALUES (?, ?, ?, NULL)'
+                'INSERT INTO conti (nome, anno, username, parent_conto_id) VALUES (?, ?, ?, NULL)'
             );
-            $stmt->execute([$nome, (int) $annoPost, $userId]);
+            $stmt->execute([$nome, (int) $annoPost, $username]);
             header('Location: conto.php?id=' . $pdo->lastInsertId());
             exit;
         }
     }
 }
 
-require_once __DIR__ . '/includes/header.php';
 ?>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conti Famiglia</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen">
+<nav class="bg-slate-800 text-white">
+    <div class="max-w-5xl mx-auto px-4 flex items-center justify-between h-14">
+        <a href="dashboard.php" class="font-semibold"><span aria-hidden="true">💶</span> Conti Famiglia</a>
+        <div class="flex items-center gap-4 text-sm">
+            <a href="inserisci.php" class="hover:text-slate-300">Nuovo record</a>
+            <a href="storico.php" class="hover:text-slate-300">Storico</a>
+            <a href="delete.php" class="hover:text-slate-300">Elimina account</a>
+            <a href="logout.php" id="link-logout" class="hover:text-slate-300">Esci</a>
+        </div>
+    </div>
+</nav>
 <div class="max-w-lg mx-auto px-4 py-8">
     <h1 class="text-2xl font-bold text-slate-800 mb-6">Nuovo conto</h1>
 
@@ -125,4 +144,8 @@ function toggleContoFields() {
 toggleContoFields();
 </script>
 
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+
+<?php require_once __DIR__ . '/includes/logout-modal.php'; ?>
+</body>
+</html>
+

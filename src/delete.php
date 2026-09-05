@@ -4,20 +4,20 @@ require_once __DIR__ . '/includes/bootstrap.php';
 require_once __DIR__ . '/includes/auth.php';
 requireLogin();
 
-$userId = (int) $_SESSION['user_id'];
+$username = $_SESSION['username'];
 $errore = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
 
-    $stmt = $pdo->prepare('SELECT password FROM utenti WHERE id = ?');
-    $stmt->execute([$userId]);
+    $stmt = $pdo->prepare('SELECT password FROM utenti WHERE username = ?');
+    $stmt->execute([$username]);
     $utente = $stmt->fetch();
 
     if (!$utente || !password_verify($password, $utente['password'])) {
         $errore = 'Password non corretta.';
     } else {
-        deleteAccount($pdo, $userId);
+        deleteAccount($pdo, $username);
 
         $_SESSION = [];
         session_destroy();
@@ -27,8 +27,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-require_once __DIR__ . '/includes/header.php';
 ?>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conti Famiglia</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen">
+<nav class="bg-slate-800 text-white">
+    <div class="max-w-5xl mx-auto px-4 flex items-center justify-between h-14">
+        <a href="dashboard.php" class="font-semibold"><span aria-hidden="true">💶</span> Conti Famiglia</a>
+        <div class="flex items-center gap-4 text-sm">
+            <a href="inserisci.php" class="hover:text-slate-300">Nuovo record</a>
+            <a href="storico.php" class="hover:text-slate-300">Storico</a>
+            <a href="logout.php" id="link-logout" class="hover:text-slate-300">Esci</a>
+        </div>
+    </div>
+</nav>
 <div class="max-w-lg mx-auto px-4 py-8">
     <h1 class="text-2xl font-bold text-slate-800 mb-6">Il tuo account</h1>
 
@@ -60,10 +78,11 @@ require_once __DIR__ . '/includes/header.php';
     <div class="bg-white rounded-xl shadow-lg max-w-sm w-full p-6">
         <h3 class="text-lg font-semibold text-slate-800 mb-2">Eliminare l'account?</h3>
         <p class="text-sm text-slate-500 mb-4">
-            Questa azione non può essere annullata. Inserisci la tua password per confermare.
+            Questa azione non può essere annullata.
         </p>
         <form method="post" id="formElimina" class="space-y-4">
-            <input type="password" name="password" required autofocus placeholder="Password"
+            <label for="password">Inserisci la password per confermare</label>
+            <input id="password" type="password" name="password" required autofocus placeholder="Password"
                    class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-400">
             <div class="flex gap-3">
                 <button type="button" onclick="chiudiModaleEliminaAccount()"
@@ -93,4 +112,8 @@ document.getElementById('modaleEliminaAccount').addEventListener('click', (e) =>
     if (e.target.id === 'modaleEliminaAccount') chiudiModaleEliminaAccount();
 });
 </script>
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+
+<?php require_once __DIR__ . '/includes/logout-modal.php'; ?>
+</body>
+</html>
+

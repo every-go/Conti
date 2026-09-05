@@ -6,7 +6,7 @@
  */
 function requireLogin(): void
 {
-    if (empty($_SESSION['user_id'])) {
+    if (empty($_SESSION['username'])) {
         header('Location: login.php');
         exit;
     }
