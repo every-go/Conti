@@ -3,7 +3,7 @@
 App web per tracciare le spese personali/familiari, con login, conti annuali e
 sotto-conti a livelli infiniti (es. `2022 → Sardegna → Trasporti`).
 
-Stack: **PHP 8.2 (puro) + MySQL 8 + Tailwind CSS (via CDN)**, containerizzata con Docker
+Stack: **PHP 8.2 (puro) + MySQL 8 + Tailwind CSS**, containerizzata con Docker
 per lo sviluppo in locale.
 
 ## Struttura del progetto
@@ -25,16 +25,17 @@ mazzaretto-conti/
     ├── modifica.php           Modifica/elimina un record esistente
     ├── storico.php            Storico filtrabile per conto, categoria, tipo, intervallo date
     └── includes/
-        ├── db.php              Connessione PDO al database
-        ├── bootstrap.php        Avvia sessione + carica db.php e functions.php
-        ├── auth.php              requireLogin()
-        ├── functions.php         Formattazione importi, calcoli ricorsivi sui conti, controlli di sicurezza
+        ├── db.php             Connessione PDO al database
+        ├── bootstrap.php      Avvia sessione + carica db.php e functions.php
+        ├── auth.php           requireLogin()
+        ├── functions.php      Formattazione importi, calcoli ricorsivi sui conti, controlli di sicurezza
+        |── logout-modal.php   Modale per confermare il logout
 ```
 
 ## Come funziona lo schema dati
 
-- **utenti**: `username` (PRIMARY KEY), `password` (hashata con `password_hash`)
-- **conti**: `id`, `nome`, `anno` (valorizzato solo se è un conto principale), `user_id`,
+- **utenti**: `username` (PRIMARY KEY), `password`
+- **conti**: `id`, `nome`, `anno` (valorizzato solo se è un conto principale), `username`,
   `parent_conto_id` (NULL = conto principale, altrimenti sotto-conto — supporta livelli infiniti)
 - **record**: `id`, `conto_id`, `nome` (categoria, es. "Cibo"), `soldi` (negativo se costo),
   `tipo` (ENUM `Contanti`/`Bancomat`, obbligatorio), `data`, `note` (opzionale)

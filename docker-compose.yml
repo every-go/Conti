@@ -17,7 +17,6 @@ services:
       db:
         condition: service_healthy
     restart: unless-stopped
-
   db:
     image: mysql:8.0
     container_name: mazzaretto_db
@@ -37,7 +36,6 @@ services:
       timeout: 5s
       retries: 10
     restart: unless-stopped
-
   phpmyadmin:
     image: phpmyadmin:latest
     container_name: mazzaretto_phpmyadmin
@@ -49,6 +47,15 @@ services:
       - "8081:80"
     depends_on:
       - db
+    restart: unless-stopped
+  tailwind:
+    build:
+      context: ./docker/tailwind
+    container_name: mazzaretto_tailwind
+    volumes:
+      - ./tailwind:/app/tailwind
+      - ./src:/app/src
+    command: -i ./tailwind/input.css -o ./src/style.css --watch=always
     restart: unless-stopped
 
 volumes:

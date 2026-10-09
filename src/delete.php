@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Conti Famiglia</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/style.css">
 </head>
 <body class="bg-slate-100 min-h-screen">
 <nav class="bg-slate-800 text-white">
