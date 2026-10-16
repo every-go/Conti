@@ -233,10 +233,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </button>
     </form>
 
+    <style>
+        .modale-nativo {
+            position: fixed;
+            inset: 0;
+            margin: auto;
+            width: calc(100% - 2rem);
+            max-width: 24rem;
+            height: fit-content;
+            padding: 0;
+            border: 0;
+            border-radius: 0.75rem;
+            background: #fff;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1);
+        }
+        .modale-nativo::backdrop {
+            background: rgb(15 23 42 / .5);
+        }
+    </style>
+
     <!-- Modale di conferma eliminazione -->
-    <div id="modaleElimina" class="hidden fixed inset-0 bg-slate-900/50 flex items-center justify-center px-4 z-50">
-        <div class="bg-white rounded-xl shadow-lg max-w-sm w-full p-6">
-            <h3 class="text-lg font-semibold text-slate-800 mb-2">Eliminare il record?</h3>
+    <dialog id="modaleElimina" class="modale-nativo" aria-labelledby="modaleEliminaTitolo">
+        <div class="p-6">
+            <h3 id="modaleEliminaTitolo" class="text-lg font-semibold text-slate-800 mb-2">Eliminare il record?</h3>
             <p class="text-sm text-slate-500 mb-6">Questa azione non può essere annullata.</p>
             <div class="flex gap-3">
                 <button type="button" onclick="chiudiModaleElimina()"
@@ -249,21 +268,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </button>
             </div>
         </div>
-    </div>
+    </dialog>
 
     <script>
-    function apriModaleElimina() {
-        document.getElementById('modaleElimina').classList.remove('hidden');
-    }
-    function chiudiModaleElimina() {
-        document.getElementById('modaleElimina').classList.add('hidden');
-    }
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') chiudiModaleElimina();
-    });
-    document.getElementById('modaleElimina').addEventListener('click', (e) => {
-        if (e.target.id === 'modaleElimina') chiudiModaleElimina();
-    });
+        const modaleElimina = document.getElementById('modaleElimina');
+
+        function apriModaleElimina() {
+            modaleElimina.showModal();
+        }
+
+        function chiudiModaleElimina() {
+            modaleElimina.close();
+        }
+
+        // Click sul backdrop: il target è il dialog stesso
+        modaleElimina.addEventListener('click', (e) => {
+            if (e.target === modaleElimina) chiudiModaleElimina();
+        });
     </script>
 </div>
 

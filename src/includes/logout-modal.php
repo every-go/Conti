@@ -1,18 +1,36 @@
-<div id="modal-logout" class="hidden fixed inset-0 bg-slate-900/50 flex items-center justify-center px-4 z-50">
-    <dialog id="dialog-logout" open class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 w-full max-w-sm" aria-labelledby="modal-logout-titolo">
-        <h2 id="modal-logout-titolo" class="text-lg font-semibold text-slate-800 mb-2">Conferma uscita</h2>
-        <p class="text-sm text-slate-600 mb-6">Sei sicuro di voler uscire da Conti Famiglia?</p>
-        <div class="flex justify-end gap-3">
-            <button type="button" id="btn-annulla-logout"
-                class="px-4 py-2 rounded-lg text-slate-700 font-medium hover:bg-slate-100 transition">
-                Annulla
-            </button>
-            <a href="logout.php" id="conferma-logout" class="px-4 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition">
-                Esci
-            </a>
-        </div>
-    </dialog>
-</div>
+<style>
+    #modal-logout {
+        position: fixed;
+        inset: 0;
+        margin: auto;           /* centra in orizzontale e verticale */
+        width: calc(100% - 2rem);
+        max-width: 24rem;
+        height: fit-content;
+        padding: 1.5rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.75rem;
+        background: #fff;
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1);
+    }
+    #modal-logout::backdrop {
+        background: rgb(15 23 42 / .5);
+    }
+</style>
+
+<dialog id="modal-logout" aria-labelledby="modal-logout-titolo">
+    <h2 id="modal-logout-titolo" class="text-lg font-semibold text-slate-800 mb-2">Conferma uscita</h2>
+    <p class="text-sm text-slate-600 mb-6">Sei sicuro di voler uscire da Conti Famiglia?</p>
+    <div class="flex justify-end gap-3">
+        <button type="button" id="btn-annulla-logout"
+            class="px-4 py-2 rounded-lg text-slate-700 font-medium hover:bg-slate-100 transition">
+            Annulla
+        </button>
+        <a href="logout.php" id="conferma-logout"
+            class="px-4 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition">
+            Esci
+        </a>
+    </div>
+</dialog>
 
 <script>
     (function () {
@@ -20,30 +38,23 @@
         const modale = document.getElementById('modal-logout');
         const btnAnnulla = document.getElementById('btn-annulla-logout');
 
-        function apriModale(evento) {
+        linkLogout.addEventListener('click', function (evento) {
             evento.preventDefault();
-            modale.classList.remove('hidden');
+            modale.showModal();
             btnAnnulla.focus();
-        }
+        });
 
-        function chiudiModale() {
-            modale.classList.add('hidden');
-            linkLogout.focus();
-        }
+        btnAnnulla.addEventListener('click', function () {
+            modale.close();
+        });
 
-        linkLogout.addEventListener('click', apriModale);
-        btnAnnulla.addEventListener('click', chiudiModale);
-
+        // Click sul backdrop: l'evento ha come target il dialog stesso
         modale.addEventListener('click', function (evento) {
             if (evento.target === modale) {
-                chiudiModale();
+                modale.close();
             }
         });
 
-        document.addEventListener('keydown', function (evento) {
-            if (evento.key === 'Escape' && !modale.classList.contains('hidden')) {
-                chiudiModale();
-            }
-        });
+        // Esc è gestito dal browser; il focus torna da solo all'elemento che ha aperto il dialog
     })();
 </script>
