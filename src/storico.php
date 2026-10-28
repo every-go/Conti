@@ -60,6 +60,13 @@ $stmt = $pdo->prepare(
 $stmt->execute([$username]);
 $categorieEsistenti = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
+// Se lo storico è filtrato su un conto specifico (e il conto è dell'utente),
+// mostro il percorso completo fino a quel conto. Altrimenti mostro solo "Conti / Storico".
+$breadcrumb = [];
+if ($filtroConto !== '' && contoBelongsToUser($pdo, (int) $filtroConto, $username)) {
+    $breadcrumb = getContoBreadcrumb($pdo, (int) $filtroConto);
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -72,15 +79,27 @@ $categorieEsistenti = $stmt->fetchAll(PDO::FETCH_COLUMN);
 <body class="bg-slate-100 min-h-screen">
 <nav class="bg-slate-800 text-white">
     <div class="max-w-5xl mx-auto px-4 flex items-center justify-between h-14">
-        <a href="dashboard.php" class="font-semibold"><span aria-hidden="true">💶</span> Conti Famiglia</a>
+        <a href="dashboard.php" class="font-semibold" tabindex="-1" aria-hidden="true"><span aria-hidden="true">💶</span> Conti Famiglia</a>
         <div class="flex items-center gap-4 text-sm">
+            <a href="dashboard.php" lang="en" class="hover:text-slate-300">Home</a>
             <a href="inserisci.php" class="hover:text-slate-300">Nuovo record</a>
+            <p class="hover:text-slate-300">Storico</p>
             <a href="delete.php" class="hover:text-slate-300">Elimina account</a>
             <a href="logout.php" id="link-logout" class="hover:text-slate-300">Esci</a>
         </div>
     </div>
 </nav>
 <div class="max-w-5xl mx-auto px-4 py-8">
+    <div class="text-sm text-slate-500 mb-4 flex flex-wrap gap-1 items-center">
+        <a href="dashboard.php" class="hover:underline">Conti</a>
+        <?php foreach ($breadcrumb as $b): ?>
+            <span>/</span>
+            <a href="conto.php?id=<?= $b['id'] ?>" class="hover:underline"><?= htmlspecialchars($b['nome']) ?></a>
+        <?php endforeach; ?>
+        <span>/</span>
+        <span class="text-slate-700 font-medium">Storico</span>
+    </div>
+
     <h1 class="text-2xl font-bold text-slate-800 mb-6">Storico movimenti</h1>
 
     <?php if (isset($_GET['modificato'])): ?>

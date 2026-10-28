@@ -9,7 +9,7 @@ per lo sviluppo in locale.
 ## Struttura del progetto
 
 ```
-mazzaretto-conti/
+conti/
 ├── docker-compose.yml       Orchestrazione dei 3 servizi (web, db, phpmyadmin)
 ├── .env                     Credenziali usate da docker-compose (NON versionare)
 ├── .env.example              Esempio di .env da copiare/personalizzare
@@ -61,12 +61,9 @@ docker compose up -d --build
 #    http://localhost:8081   (utente/password presi da .env)
 ```
 
-Al primo avvio, MySQL esegue automaticamente `db/schema.sql` e crea le tabelle. Registra il
-primo utente da `http://localhost:8080/register.php`: viene creato in automatico anche il
-conto per l'anno corrente.
+Al primo avvio, MySQL esegue automaticamente `db/schema.sql` e crea le tabelle. Registra il primo utente da `http://localhost:8080/register.php`.
 
-Le modifiche ai file dentro `src/` sono visibili subito ricaricando la pagina (nessun rebuild
-necessario: la cartella è montata come volume).
+Le modifiche ai file dentro `src/` sono visibili subito ricaricando la pagina (nessun rebuild necessario: la cartella è montata come volume).
 
 ### Comandi utili
 

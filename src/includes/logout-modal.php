@@ -1,23 +1,5 @@
-<style>
-    #modal-logout {
-        position: fixed;
-        inset: 0;
-        margin: auto;           /* centra in orizzontale e verticale */
-        width: calc(100% - 2rem);
-        max-width: 24rem;
-        height: fit-content;
-        padding: 1.5rem;
-        border: 1px solid #e2e8f0;
-        border-radius: 0.75rem;
-        background: #fff;
-        box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1);
-    }
-    #modal-logout::backdrop {
-        background: rgb(15 23 42 / .5);
-    }
-</style>
-
-<dialog id="modal-logout" aria-labelledby="modal-logout-titolo">
+<dialog id="modal-logout" aria-labelledby="modal-logout-titolo"
+        class="m-auto p-6 w-[calc(100%-2rem)] max-w-sm border border-slate-200 rounded-xl bg-white shadow-lg backdrop:bg-slate-900/50">
     <h2 id="modal-logout-titolo" class="text-lg font-semibold text-slate-800 mb-2">Conferma uscita</h2>
     <p class="text-sm text-slate-600 mb-6">Sei sicuro di voler uscire da Conti Famiglia?</p>
     <div class="flex justify-end gap-3">

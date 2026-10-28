@@ -12,6 +12,16 @@ if (!$contoId || !contoBelongsToUser($pdo, $contoId, $username)) {
     exit;
 }
 
+// Gestione eliminazione conto (POST)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['elimina'])) {
+    if (deleteConto($pdo, $contoId, $username)) {
+        header('Location: dashboard.php?conto-eliminato=1');
+    } else {
+        header('Location: dashboard.php?errore=conto-non-valido');
+    }
+    exit;
+}
+
 $stmt = $pdo->prepare('SELECT * FROM conti WHERE id = ?');
 $stmt->execute([$contoId]);
 $conto = $stmt->fetch();
@@ -19,6 +29,16 @@ $conto = $stmt->fetch();
 $breadcrumb = getContoBreadcrumb($pdo, $contoId);
 $anno = getContoAnno($pdo, $contoId);
 $totale = getContoTotal($pdo, $contoId);
+
+// Conteggi per la modale di eliminazione (conto + discendenti a tutti i livelli)
+$discendenti = getDescendantContoIds($pdo, $contoId);
+$numSottoconti = count($discendenti);
+
+$idsAlbero = array_merge([$contoId], $discendenti);
+$placeholders = implode(',', array_fill(0, count($idsAlbero), '?'));
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM record WHERE conto_id IN ($placeholders)");
+$stmt->execute($idsAlbero);
+$numRecord = (int) $stmt->fetchColumn();
 
 // Voci aggregate per categoria, solo sui Record inseriti direttamente in questo conto
 $stmt = $pdo->prepare(
@@ -53,8 +73,9 @@ foreach ($figliRaw as $f) {
 <body class="bg-slate-100 min-h-screen">
 <nav class="bg-slate-800 text-white">
     <div class="max-w-5xl mx-auto px-4 flex items-center justify-between h-14">
-        <a href="dashboard.php" class="font-semibold"><span aria-hidden="true">💶</span> Conti Famiglia</a>
+        <a href="dashboard.php" class="font-semibold" tabindex="-1" aria-hidden="true"><span aria-hidden="true">💶</span> Conti Famiglia</a>
         <div class="flex items-center gap-4 text-sm">
+            <a href="dashboard.php" lang="en" class="hover:text-slate-300">Home</a>
             <a href="inserisci.php" class="hover:text-slate-300">Nuovo record</a>
             <a href="storico.php" class="hover:text-slate-300">Storico</a>
             <a href="delete.php" class="hover:text-slate-300">Elimina account</a>
@@ -83,19 +104,23 @@ foreach ($figliRaw as $f) {
             <p class="text-slate-500 text-sm">Anno <?= htmlspecialchars((string) ($anno ?? '—')) ?></p>
         </div>
         <div class="flex flex-wrap gap-2">
+            <button type="button" onclick="apriModaleElimina()"
+                    class="bg-white border border-red-300 text-red-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-50 transition">
+                Elimina conto
+            </button>
             <a href="inserisci.php?conto_id=<?= $contoId ?>"
                class="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition">
-                + Nuovo record
+                <span aria-hidden="true">+</span> Nuovo record
             </a>
             <a href="crea_conto.php?parent_id=<?= $contoId ?>"
                class="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition">
-                + Sotto-conto
+                <span aria-hidden="true">+</span> Sotto-conto
             </a>
         </div>
     </div>
 
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
-        <div class="text-sm text-slate-500 mb-1">Totale (record diretti + sotto-conti)</div>
+        <div class="text-sm text-slate-500 mb-1">Totale (conto + sotto-conti)</div>
         <div class="text-3xl font-bold <?= moneyColorClass($totale) ?>"><?= formatMoney($totale) ?></div>
     </div>
 
@@ -148,7 +173,56 @@ foreach ($figliRaw as $f) {
         </div>
     </div>
 </div>
+
+<!-- Modale di conferma eliminazione conto -->
+<dialog id="modaleEliminaConto" aria-labelledby="modaleEliminaContoTitolo"
+        class="m-auto p-0 w-[calc(100%-2rem)] max-w-sm rounded-xl bg-white shadow-lg backdrop:bg-slate-900/50">
+    <div class="p-6">
+        <h2 id="modaleEliminaContoTitolo" class="text-lg font-semibold text-slate-800 mb-2">Eliminare il conto?</h2>
+        <p class="text-sm text-slate-600 mb-3">
+            Stai per eliminare <strong><?= htmlspecialchars($conto['nome']) ?></strong>.
+        </p>
+        <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 mb-6 text-sm space-y-1">
+            <p class="font-medium">Questa azione non può essere annullata.</p>
+            <p>Verranno eliminati anche:</p>
+            <ul class="list-disc list-inside">
+                <li><strong><?= $numSottoconti ?></strong> sotto-<?= $numSottoconti === 1 ? 'conto' : 'conti' ?></li>
+                <li><strong><?= $numRecord ?></strong> record collegat<?= $numRecord === 1 ? 'o' : 'i' ?></li>
+            </ul>
+        </div>
+        <div class="flex gap-3">
+            <button type="button" onclick="chiudiModaleElimina()"
+                    class="flex-1 border border-slate-300 text-slate-700 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition">
+                Annulla
+            </button>
+            <button type="button" onclick="document.getElementById('formEliminaConto').submit()"
+                    class="flex-1 bg-red-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition">
+                Elimina
+            </button>
+        </div>
+    </div>
+</dialog>
+
+<form method="post" id="formEliminaConto" class="hidden">
+    <input type="hidden" name="elimina" value="1">
+</form>
+
+<script>
+    const modaleEliminaConto = document.getElementById('modaleEliminaConto');
+
+    function apriModaleElimina() {
+        modaleEliminaConto.showModal();
+    }
+
+    function chiudiModaleElimina() {
+        modaleEliminaConto.close();
+    }
+
+    modaleEliminaConto.addEventListener('click', (e) => {
+        if (e.target === modaleEliminaConto) chiudiModaleElimina();
+    });
+</script>
+
 <?php require_once __DIR__ . '/includes/logout-modal.php'; ?>
 </body>
 </html>
-

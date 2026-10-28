@@ -1,7 +1,3 @@
--- Schema del database "Conti Famiglia"
--- Viene eseguito automaticamente al primo avvio del container MySQL
--- (montato in /docker-entrypoint-initdb.d)
-
 CREATE TABLE IF NOT EXISTS utenti (
     username VARCHAR(16) PRIMARY KEY,
     password VARCHAR(255) NOT NULL,
@@ -16,7 +12,14 @@ CREATE TABLE IF NOT EXISTS conti (
     parent_conto_id INT NULL,            -- NULL = conto principale, altrimenti sotto-conto (livelli infiniti)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_conti_user FOREIGN KEY (username) REFERENCES utenti(username) ON DELETE CASCADE,
-    CONSTRAINT fk_conti_parent FOREIGN KEY (parent_conto_id) REFERENCES conti(id) ON DELETE CASCADE
+    CONSTRAINT fk_conti_parent FOREIGN KEY (parent_conto_id) REFERENCES conti(id) ON DELETE CASCADE,
+    -- non più di un conto principale con lo stesso anno
+    CONSTRAINT uk_conti_user_anno UNIQUE (username, anno),
+    -- 
+    CONSTRAINT chk_conti_anno_coerente CHECK (
+        (parent_conto_id IS NULL AND anno IS NOT NULL) OR
+        (parent_conto_id IS NOT NULL AND anno IS NULL)
+    )
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS record (

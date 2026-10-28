@@ -2,7 +2,7 @@ services:
   web:
     build:
       context: ./docker/php
-    container_name: mazzaretto_web
+    container_name: web
     ports:
       - "8080:80"
     volumes:
@@ -19,7 +19,7 @@ services:
     restart: unless-stopped
   db:
     image: mysql:8.0
-    container_name: mazzaretto_db
+    container_name: db
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
@@ -38,7 +38,7 @@ services:
     restart: unless-stopped
   phpmyadmin:
     image: phpmyadmin:latest
-    container_name: mazzaretto_phpmyadmin
+    container_name: phpmyadmin
     environment:
       PMA_HOST: db
       PMA_USER: ${DB_USER}
@@ -51,7 +51,7 @@ services:
   tailwind:
     build:
       context: ./docker/tailwind
-    container_name: mazzaretto_tailwind
+    container_name: tailwind
     volumes:
       - ./tailwind:/app/tailwind
       - ./src:/app/src

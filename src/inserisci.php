@@ -33,6 +33,15 @@ $contoIdDefault = isset($_GET['conto_id'])
     ? (int) $_GET['conto_id']
     : ($contoPrincipalePiuRecente['id'] ?? 0);
 
+// Se arrivo da un conto specifico mostro il percorso completo,
+// altrimenti mostro solo "Conti / Nuovo record".
+// Uso $contoIdDefault (che tiene già conto di ?conto_id) e valido che il conto
+// appartenga all'utente, per non fidarmi del parametro GET.
+$breadcrumb = [];
+if ($contoIdDefault && contoBelongsToUser($pdo, $contoIdDefault, $username)) {
+    $breadcrumb = getContoBreadcrumb($pdo, $contoIdDefault);
+}
+
 // Valori da mostrare nel form: di default vuoti/precompilati con la data odierna,
 // ma se arriviamo da un errore di validazione vengono sovrascritti con quanto
 // l'utente aveva già digitato, così non deve riscrivere tutto da capo.
@@ -62,9 +71,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errore = 'Conto non valido.';
     } elseif ($vals['nome'] === '') {
         $errore = 'Inserisci il nome/categoria.';
-    } elseif (!preg_match('/^\d+(\.\d{1,2})?$/', $soldiNormalizzato)) {
-    $errore = 'L\'importo può avere al massimo due cifre decimali (es. 8, 8,20): niente arrotondamenti automatici, correggi il valore.';
-    } elseif(!in_array($vals['tipo-soldi'], ['Entrata', 'Uscita'], true)) {
+    } elseif (!preg_match('/^\d{1,8}(\.\d{1,2})?$/', $soldiNormalizzato)) {
+        // Solo cifre, con al massimo 2 decimali (la colonna è DECIMAL(10,2): 8 cifre intere + 2 decimali)
+        $errore = 'Inserisci un importo valido, con al massimo 2 decimali (es. 12,50) e 8 cifre intere.';
+    } elseif (!in_array($vals['tipo-soldi'], ['Entrata', 'Uscita'], true)) {
         $errore = "Inserisci il tipo di transazione.";
     } elseif (!in_array($vals['tipo'], ['Contanti', 'Bancomat'], true)) {
         $errore = 'Seleziona il metodo.';
@@ -103,8 +113,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="bg-slate-100 min-h-screen">
 <nav class="bg-slate-800 text-white">
     <div class="max-w-5xl mx-auto px-4 flex items-center justify-between h-14">
-        <a href="dashboard.php" class="font-semibold"><span aria-hidden="true">💶</span> Conti Famiglia</a>
+        <a href="dashboard.php" class="font-semibold" tabindex="-1" aria-hidden="true"><span aria-hidden="true">💶</span> Conti Famiglia</a>
         <div class="flex items-center gap-4 text-sm">
+            <a href="dashboard.php" lang="en" class="hover:text-slate-300">Home</a>
+            <p class="hover:text-slate-300">Nuovo record</p>
             <a href="storico.php" class="hover:text-slate-300">Storico</a>
             <a href="delete.php" class="hover:text-slate-300">Elimina account</a>
             <a href="logout.php" id="link-logout" class="hover:text-slate-300">Esci</a>
@@ -112,6 +124,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </nav>
 <div class="max-w-lg mx-auto px-4 py-8">
+    <div class="text-sm text-slate-500 mb-4 flex flex-wrap gap-1 items-center">
+        <a href="dashboard.php" class="hover:underline">Conti</a>
+        <?php foreach ($breadcrumb as $b): ?>
+            <span>/</span>
+            <a href="conto.php?id=<?= $b['id'] ?>" class="hover:underline"><?= htmlspecialchars($b['nome']) ?></a>
+        <?php endforeach; ?>
+        <span>/</span>
+        <span class="text-slate-700 font-medium">Nuovo record</span>
+    </div>
+
     <h1 class="text-2xl font-bold text-slate-800 mb-6">Nuovo record</h1>
 
     <?php if ($errore): ?>
@@ -172,11 +194,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="text" inputmode="decimal" name="soldi" id="soldi" required autocomplete="off"
                 placeholder="es. 25,50"
                 value="<?= htmlspecialchars($vals['soldi']) ?>"
-                pattern="[0-9]+([.,][0-9]{1,2})?"
-                title="Massimo due cifre decimali, es. 8 oppure 8,20"
+                pattern="[0-9]{1,8}([.,][0-9]{1,2})?"
+                maxlength="11"
+                title="Max 8 cifre intere e 2 decimali (es. 25,50)"
                 class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
             <p class="text-xs text-slate-400 mt-1">
-                Massimo 2 cifre decimali, senza arrotondamenti.
+                Max 8 cifre intere e 2 decimali (es. 25,50)
             </p>
         </div>
 
@@ -246,4 +269,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php require_once __DIR__ . '/includes/logout-modal.php'; ?>
 </body>
 </html>
-

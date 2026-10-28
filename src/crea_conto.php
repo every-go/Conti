@@ -46,12 +46,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             }
         } else {
-            $stmt = $pdo->prepare(
-                'INSERT INTO conti (nome, anno, username, parent_conto_id) VALUES (?, ?, ?, NULL)'
-            );
-            $stmt->execute([$nome, (int) $annoPost, $username]);
-            header('Location: conto.php?id=' . $pdo->lastInsertId());
-            exit;
+            try {
+                $stmt = $pdo->prepare(
+                    'INSERT INTO conti (nome, anno, username, parent_conto_id) VALUES (?, ?, ?, NULL)'
+                );
+                $stmt->execute([$nome, (int) $annoPost, $username]);
+                header('Location: conto.php?id=' . $pdo->lastInsertId());
+                exit;
+            } catch (PDOException $e) {
+                // 1062 = ER_DUP_ENTRY di MySQL: violazione di uk_conti_user_anno
+                if (($e->errorInfo[1] ?? null) === 1062) {
+                    $errore = "Hai già un conto principale per l'anno {$annoPost}. Scegli un altro anno.";
+                } else {
+                    throw $e; // altri errori: non li nascondiamo
+                }
+            }
         }
     }
 }
@@ -68,8 +77,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="bg-slate-100 min-h-screen">
 <nav class="bg-slate-800 text-white">
     <div class="max-w-5xl mx-auto px-4 flex items-center justify-between h-14">
-        <a href="dashboard.php" class="font-semibold"><span aria-hidden="true">💶</span> Conti Famiglia</a>
+        <a href="dashboard.php" class="font-semibold" tabindex="-1" aria-hidden="true"><span aria-hidden="true">💶</span> Conti Famiglia</a>
         <div class="flex items-center gap-4 text-sm">
+            <a href="dashboard.php" lang="en" class="hover:text-slate-300">Home</a>
             <a href="inserisci.php" class="hover:text-slate-300">Nuovo record</a>
             <a href="storico.php" class="hover:text-slate-300">Storico</a>
             <a href="delete.php" class="hover:text-slate-300">Elimina account</a>
@@ -98,17 +108,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="flex gap-4 text-sm">
                 <label for="conto_principale" class="flex items-center gap-2">
                     <input id="conto_principale" type="radio" name="tipo_conto" value="principale" <?= $parentId ? '' : 'checked' ?> onchange="toggleContoFields()">
-                    Conto principale (anno)
+                    Conto principale
                 </label>
                 <label for="sotto_conto" class="flex items-center gap-2">
                     <input id="sotto_conto" type="radio" name="tipo_conto" value="sotto" <?= $parentId ? 'checked' : '' ?> onchange="toggleContoFields()">
                     Sotto-conto
-                    Conto principale (anno)
                 </label>
-                <p class="text-xs text-slate-400 mt-1">
-                Un sotto-conto (es. "Sardegna") eredita l'anno dal suo conto padre e può a sua volta avere altri sotto-conti.
-            </p>
             </div>
+            <p class="text-m text-slate-400 mt-1">
+                Ogni sotto-conto utilizza lo stesso anno del conto a cui appartiene e può contenere a sua volta altri sotto-conti
+            </p>
         </fieldset>
 
         <div id="campo-anno">

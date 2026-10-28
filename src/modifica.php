@@ -49,8 +49,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errore = 'Conto non valido.';
     } elseif ($nome === '') {
         $errore = 'Inserisci il nome/categoria.';
-    } elseif (!is_numeric($soldiRaw)) {
-        $errore = 'Inserisci un importo valido.';
+    } elseif (!preg_match('/^\d{1,8}(\.\d{1,2})?$/', $soldiRaw)) {
+        // Solo cifre, con al massimo 2 decimali (la colonna è DECIMAL(10,2): 8 cifre intere + 2 decimali)
+        $errore = 'Inserisci un importo valido, con al massimo 2 decimali (es. 12,50) e 8 cifre intere.';
     } elseif (!in_array($tipoSoldi, ['Entrata', 'Uscita'], true)) {
         $errore = 'Seleziona il tipo di transazione.';
     } elseif (!in_array($tipo, ['Contanti', 'Bancomat'], true)) {
@@ -83,6 +84,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ];
 }
 
+// Percorso dalla radice al conto del record (o al conto selezionato in caso di errore).
+// Il conto è già garantito appartenere all'utente (check a inizio file + contoBelongsToUser in POST).
+$breadcrumb = getContoBreadcrumb($pdo, (int) $record['conto_id']);
+
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -95,8 +100,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="bg-slate-100 min-h-screen">
 <nav class="bg-slate-800 text-white">
     <div class="max-w-5xl mx-auto px-4 flex items-center justify-between h-14">
-        <a href="dashboard.php" class="font-semibold"><span aria-hidden="true">💶</span> Conti Famiglia</a>
+        <a href="dashboard.php" class="font-semibold" tabindex="-1" aria-hidden="true"><span aria-hidden="true">💶</span> Conti Famiglia</a>
         <div class="flex items-center gap-4 text-sm">
+            <a href="dashboard.php" lang="en" class="hover:text-slate-300">Home</a>
             <a href="inserisci.php" class="hover:text-slate-300">Nuovo record</a>
             <a href="storico.php" class="hover:text-slate-300">Storico</a>
             <a href="delete.php" class="hover:text-slate-300">Elimina account</a>
@@ -105,6 +111,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </nav>
 <div class="max-w-lg mx-auto px-4 py-8">
+    <div class="text-sm text-slate-500 mb-4 flex flex-wrap gap-1 items-center">
+        <a href="dashboard.php" class="hover:underline">Conti</a>
+        <?php foreach ($breadcrumb as $b): ?>
+            <span>/</span>
+            <a href="conto.php?id=<?= $b['id'] ?>" class="hover:underline"><?= htmlspecialchars($b['nome']) ?></a>
+        <?php endforeach; ?>
+        <span>/</span>
+        <span class="text-slate-700 font-medium">Modifica record</span>
+    </div>
+
     <h1 class="text-2xl font-bold text-slate-800 mb-6">Modifica record</h1>
 
     <?php if ($errore): ?>
@@ -199,6 +215,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     </form>
 
+    <form method="post" id="formElimina" class="mt-3">
+        <input type="hidden" name="id" value="<?= $recordId ?>">
+        <input type="hidden" name="elimina" value="1">
+        <button type="button" onclick="apriModaleElimina()"
+                class="w-full bg-white border border-red-300 text-red-600 py-2.5 rounded-lg font-medium hover:bg-red-50 transition">
+            Elimina record
+        </button>
+    </form>
+
+    <!-- Modale di conferma eliminazione -->
+    <dialog id="modaleElimina" aria-labelledby="modaleEliminaTitolo"
+            class="m-auto p-0 w-[calc(100%-2rem)] max-w-sm rounded-xl bg-white shadow-lg backdrop:bg-slate-900/50">
+        <div class="p-6">
+            <h2 id="modaleEliminaTitolo" class="text-lg font-semibold text-slate-800 mb-2">Eliminare il record?</h2>
+            <p class="text-sm text-slate-500 mb-6">Questa azione non può essere annullata.</p>
+            <div class="flex gap-3">
+                <button type="button" onclick="chiudiModaleElimina()"
+                        class="flex-1 border border-slate-300 text-slate-700 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition">
+                    Annulla
+                </button>
+                <button type="button" onclick="document.getElementById('formElimina').submit()"
+                        class="flex-1 bg-red-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition">
+                    Elimina
+                </button>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- [FIX MODALE] Script spostato DOPO il <dialog>, così getElementById lo trova -->
     <script>
     function aggiornaLimitiData() {
         const select = document.getElementById('conto_id');
@@ -222,69 +267,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     aggiornaLimitiData();
-    </script>
 
-    <form method="post" id="formElimina" class="mt-3">
-        <input type="hidden" name="id" value="<?= $recordId ?>">
-        <input type="hidden" name="elimina" value="1">
-        <button type="button" onclick="apriModaleElimina()"
-                class="w-full bg-white border border-red-300 text-red-600 py-2.5 rounded-lg font-medium hover:bg-red-50 transition">
-            Elimina record
-        </button>
-    </form>
+    const modaleElimina = document.getElementById('modaleElimina');
 
-    <style>
-        .modale-nativo {
-            position: fixed;
-            inset: 0;
-            margin: auto;
-            width: calc(100% - 2rem);
-            max-width: 24rem;
-            height: fit-content;
-            padding: 0;
-            border: 0;
-            border-radius: 0.75rem;
-            background: #fff;
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1);
-        }
-        .modale-nativo::backdrop {
-            background: rgb(15 23 42 / .5);
-        }
-    </style>
+    function apriModaleElimina() {
+        modaleElimina.showModal();
+    }
 
-    <!-- Modale di conferma eliminazione -->
-    <dialog id="modaleElimina" class="modale-nativo" aria-labelledby="modaleEliminaTitolo">
-        <div class="p-6">
-            <h3 id="modaleEliminaTitolo" class="text-lg font-semibold text-slate-800 mb-2">Eliminare il record?</h3>
-            <p class="text-sm text-slate-500 mb-6">Questa azione non può essere annullata.</p>
-            <div class="flex gap-3">
-                <button type="button" onclick="chiudiModaleElimina()"
-                        class="flex-1 border border-slate-300 text-slate-700 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition">
-                    Annulla
-                </button>
-                <button type="button" onclick="document.getElementById('formElimina').submit()"
-                        class="flex-1 bg-red-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition">
-                    Elimina
-                </button>
-            </div>
-        </div>
-    </dialog>
+    function chiudiModaleElimina() {
+        modaleElimina.close();
+    }
 
-    <script>
-        const modaleElimina = document.getElementById('modaleElimina');
-
-        function apriModaleElimina() {
-            modaleElimina.showModal();
-        }
-
-        function chiudiModaleElimina() {
-            modaleElimina.close();
-        }
-
-        // Click sul backdrop: il target è il dialog stesso
-        modaleElimina.addEventListener('click', (e) => {
-            if (e.target === modaleElimina) chiudiModaleElimina();
-        });
+    // Click sul backdrop: il target è il dialog stesso
+    modaleElimina.addEventListener('click', (e) => {
+        if (e.target === modaleElimina) chiudiModaleElimina();
+    });
     </script>
 </div>
 

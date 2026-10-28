@@ -39,15 +39,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="bg-slate-100 min-h-screen">
 <nav class="bg-slate-800 text-white">
     <div class="max-w-5xl mx-auto px-4 flex items-center justify-between h-14">
-        <a href="dashboard.php" class="font-semibold"><span aria-hidden="true">💶</span> Conti Famiglia</a>
+        <a href="dashboard.php" class="font-semibold" tabindex="-1" aria-hidden="true"><span aria-hidden="true">💶</span> Conti Famiglia</a>
         <div class="flex items-center gap-4 text-sm">
+            <a href="dashboard.php" lang="en" class="hover:text-slate-300">Home</a>
             <a href="inserisci.php" class="hover:text-slate-300">Nuovo record</a>
             <a href="storico.php" class="hover:text-slate-300">Storico</a>
+            <p class="hover:text-slate-300">Elimina account</p>
             <a href="logout.php" id="link-logout" class="hover:text-slate-300">Esci</a>
         </div>
     </div>
 </nav>
 <div class="max-w-lg mx-auto px-4 py-8">
+
+    <div class="text-sm text-slate-500 mb-4 flex flex-wrap gap-1 items-center">
+        <a href="dashboard.php" class="hover:underline">Conti</a>
+        <span aria-hidden="true">/</span>
+        <span class="text-slate-700 font-medium">Elimina account</span>
+    </div>
+
     <h1 class="text-2xl font-bold text-slate-800 mb-6">Il tuo account</h1>
 
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
@@ -74,9 +83,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 <!-- Modale di conferma eliminazione account -->
-<div id="modaleEliminaAccount" class="hidden fixed inset-0 bg-slate-900/50 flex items-center justify-center px-4 z-50">
-    <div class="bg-white rounded-xl shadow-lg max-w-sm w-full p-6">
-        <h3 class="text-lg font-semibold text-slate-800 mb-2">Eliminare l'account?</h3>
+<dialog id="modaleEliminaAccount" aria-labelledby="titoloModaleElimina"
+        class="m-auto p-0 bg-transparent overflow-visible w-[calc(100%-2rem)] max-w-sm backdrop:bg-slate-900/50">
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <h2 id="titoloModaleElimina" class="text-lg font-semibold text-slate-800 mb-2">Eliminare l'account?</h2>
         <p class="text-sm text-slate-500 mb-4">
             Questa azione non può essere annullata.
         </p>
@@ -96,24 +106,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </form>
     </div>
-</div>
+</dialog>
 
 <script>
+const modaleEliminaAccount = document.getElementById('modaleEliminaAccount');
+
 function apriModaleEliminaAccount() {
-    document.getElementById('modaleEliminaAccount').classList.remove('hidden');
+    modaleEliminaAccount.showModal();
 }
 function chiudiModaleEliminaAccount() {
-    document.getElementById('modaleEliminaAccount').classList.add('hidden');
+    modaleEliminaAccount.close();
 }
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') chiudiModaleEliminaAccount();
-});
-document.getElementById('modaleEliminaAccount').addEventListener('click', (e) => {
-    if (e.target.id === 'modaleEliminaAccount') chiudiModaleEliminaAccount();
+
+// Il tasto Esc è già gestito dal browser per i <dialog>.
+// Il click sullo sfondo scuro (::backdrop) arriva al <dialog> stesso, non al suo contenuto.
+modaleEliminaAccount.addEventListener('click', (e) => {
+    if (e.target === modaleEliminaAccount) chiudiModaleEliminaAccount();
 });
 </script>
 
 <?php require_once __DIR__ . '/includes/logout-modal.php'; ?>
 </body>
 </html>
-

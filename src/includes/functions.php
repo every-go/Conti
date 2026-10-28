@@ -5,7 +5,7 @@
  */
 function formatMoney(float $amount): string
 {
-    return $amount > 0 ? '€ ' . number_format($amount, 2, ',', '.') : '-€' . number_format(-$amount, 2, ',', '.');
+    return $amount >= 0 ? '€ ' . number_format($amount, 2, ',', '.') : '-€' . number_format(-$amount, 2, ',', '.');
 }
 
 /**
@@ -13,7 +13,13 @@ function formatMoney(float $amount): string
  */
 function moneyColorClass(float $amount): string
 {
-    return $amount > 0 ? 'text-emerald-600' : 'text-red-600';
+    if($amount > 0){
+        return 'text-emerald-600';
+    }
+    elseif ($amount == 0){
+        return 'text-yellow-600';
+    }
+    return 'text-red-600';
 }
 
 /**
@@ -182,10 +188,19 @@ function getUserContiTree(PDO $pdo, string $username): array
     return $result;
 }
 
-function deleteAccount(PDO $pdo, int $id): bool
+function deleteAccount(PDO $pdo, string $username): bool
 {
     $stmt = $pdo->prepare(
-        'DELETE FROM utenti WHERE id = ?'
+        'DELETE FROM utenti WHERE username = ?'
     );
+    return $stmt->execute([$username]);
+}
+
+function deleteConto(PDO $pdo, int $id, string $username): bool
+{
+    if (!contoBelongsToUser($pdo, $id, $username)) {
+        return false;
+    }
+    $stmt = $pdo->prepare('DELETE FROM conti WHERE id = ?');
     return $stmt->execute([$id]);
 }
