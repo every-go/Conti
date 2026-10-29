@@ -52,7 +52,7 @@ foreach ($conti as $c) {
     <div class="max-w-5xl mx-auto px-4 flex items-center justify-between h-14">
         <p class="font-semibold"><span aria-hidden="true">💶</span> Conti Famiglia</p>
         <div class="flex items-center gap-4 text-sm">
-            <p lang="en" class="hover:text-slate-300">Home</p>
+            <p lang="en" aria-current="page" class="text-slate-300">Home</p>
             <a href="inserisci.php" class="hover:text-slate-300">Nuovo record</a>
             <a href="storico.php" class="hover:text-slate-300">Storico</a>
             <a href="delete.php" class="hover:text-slate-300">Elimina account</a>

@@ -83,7 +83,7 @@ if ($filtroConto !== '' && contoBelongsToUser($pdo, (int) $filtroConto, $usernam
         <div class="flex items-center gap-4 text-sm">
             <a href="dashboard.php" lang="en" class="hover:text-slate-300">Home</a>
             <a href="inserisci.php" class="hover:text-slate-300">Nuovo record</a>
-            <p class="hover:text-slate-300">Storico</p>
+            <p class="text-slate-300" aria-current="page">Storico</p>
             <a href="delete.php" class="hover:text-slate-300">Elimina account</a>
             <a href="logout.php" id="link-logout" class="hover:text-slate-300">Esci</a>
         </div>

@@ -116,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <a href="dashboard.php" class="font-semibold" tabindex="-1" aria-hidden="true"><span aria-hidden="true">💶</span> Conti Famiglia</a>
         <div class="flex items-center gap-4 text-sm">
             <a href="dashboard.php" lang="en" class="hover:text-slate-300">Home</a>
-            <p class="hover:text-slate-300">Nuovo record</p>
+            <p class="text-slate-300" aria-current="page">Nuovo record</p>
             <a href="storico.php" class="hover:text-slate-300">Storico</a>
             <a href="delete.php" class="hover:text-slate-300">Elimina account</a>
             <a href="logout.php" id="link-logout" class="hover:text-slate-300">Esci</a>

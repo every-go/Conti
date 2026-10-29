@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <a href="dashboard.php" lang="en" class="hover:text-slate-300">Home</a>
             <a href="inserisci.php" class="hover:text-slate-300">Nuovo record</a>
             <a href="storico.php" class="hover:text-slate-300">Storico</a>
-            <p class="hover:text-slate-300">Elimina account</p>
+            <p class="text-slate-300" aria-current="page">Elimina account</p>
             <a href="logout.php" id="link-logout" class="hover:text-slate-300">Esci</a>
         </div>
     </div>
